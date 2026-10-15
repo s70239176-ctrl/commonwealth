@@ -578,8 +578,7 @@ class Commonwealth(gl.Contract):
         return "settled"
 
     # --------------------------------------------------------------- views
-    @gl.public.view
-    def get_world(self) -> dict:
+    def _world_view(self) -> dict:
         keys = json.loads(self.keys_json)
         return {
             "charter": self.charter,
@@ -597,6 +596,22 @@ class Commonwealth(gl.Contract):
         }
 
     @gl.public.view
+    def get_world(self) -> dict:
+        return self._world_view()
+
+    @gl.public.view
+    def get_snapshot(self, chronicle_items: u256) -> dict:
+        """EVERYTHING a dashboard or agent needs in ONE read: the RPC allows only 500 requests an hour per client."""
+        n = max(0, min(int(chronicle_items), CHRONICLE_KEEP))
+        log = json.loads(self.chronicle_json)
+        return {
+            "world": self._world_view(),
+            "citizens": [self._view(k, self.citizens[k]) for k in json.loads(self.keys_json)],
+            "chronicle": log[-n:] if n else [],
+            "offers": self._open_offers(None),
+        }
+
+    @gl.public.view
     def get_citizen(self, who: str) -> dict:
         key = who.lower()
         return self._view(key, self.citizens[key]) if key in self.citizens else {}
@@ -609,15 +624,18 @@ class Commonwealth(gl.Contract):
     def get_chronicle(self) -> list:
         return json.loads(self.chronicle_json)
 
-    @gl.public.view
-    def get_offers(self, who: str) -> list:
-        key = who.lower()
+    def _open_offers(self, key):
+        """Open offers, newest last; all of them, or only those involving `key`."""
         out = []
         for i in range(1, int(self.next_offer)):
             o = self.offers[u256(i)]
-            if o.status == O_OPEN and (o.from_key == key or o.to_key == key):
+            if o.status == O_OPEN and (key is None or o.from_key == key or o.to_key == key):
                 out.append({"id": i, "from": o.from_key, "to": o.to_key, "give": json.loads(o.give_json), "want": json.loads(o.want_json), "epoch": int(o.epoch)})
         return out
+
+    @gl.public.view
+    def get_offers(self, who: str) -> list:
+        return self._open_offers(who.lower())
 
     def _record(self, key: str) -> dict:
         if key not in self.citizens:

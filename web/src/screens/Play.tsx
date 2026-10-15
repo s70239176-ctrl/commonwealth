@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { getOffers, getRecord, getWorld, sendTx } from "../lib/chain.ts";
+import { getSnapshot, sendTx } from "../lib/chain.ts";
 import { formatGen } from "../lib/format.ts";
 import type { Resource } from "../lib/types.ts";
 import { RESOURCES } from "../lib/types.ts";
@@ -9,9 +9,10 @@ import { AddressLink, Empty, NeedSigner, TxStatus } from "../components/Ui.tsx";
 
 export function Play() {
   const { signer, me, connectWallet, useDemoAccount } = useSession();
-  const world = useLoad(getWorld, [], 20000);
-  const rec = useLoad(() => (me ? getRecord(me) : Promise.resolve(null)), [me], 20000);
-  const offers = useLoad(() => (me ? getOffers(me) : Promise.resolve([])), [me], 20000);
+  const snap = useLoad(getSnapshot, [], 60000);
+  const world = { data: snap.data?.world ?? null, reload: snap.reload };
+  const rec = { data: snap.data?.citizens.find((x) => x.address === me) ?? null, reload: snap.reload };
+  const offers = { data: (snap.data?.offers ?? []).filter((o) => o.from === me || o.to === me), reload: snap.reload };
   const join = useTx();
   const act = useTx();
   const farm = useTx();
@@ -26,11 +27,7 @@ export function Play() {
 
   const w = world.data;
   const c = rec.data;
-  const refresh = () => {
-    world.reload();
-    rec.reload();
-    offers.reload();
-  };
+  const refresh = () => snap.reload();
 
   async function doJoin() {
     if (!signer || !w) return setErr("Connect a wallet, or use the demo account, first.");

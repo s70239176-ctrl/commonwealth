@@ -36,30 +36,32 @@ const reader = clientFor();
 const world = () => view(reader, address, "get_world", []);
 const chainNow = async () => Number(BigInt((await paced(() => reader.request({ method: "eth_getBlockByNumber", params: ["latest", false] }))).timestamp));
 
+// RPC BUDGET: the network allows only 500 requests an hour per client, shared by everything on this machine. `look` is ONE
+// read (get_snapshot); the epoch countdown uses the local clock, so no extra call.
+const snapshot = () => view(reader, address, "get_snapshot", [12n]);
+
 async function look() {
-  const [w, cits, chron, offers, now] = await Promise.all([
-    world(), view(reader, address, "list_citizens", []), view(reader, address, "get_chronicle", []),
-    view(reader, address, "get_offers", [me]), chainNow(),
-  ]);
+  const snap = await snapshot();
+  const w = snap.world;
+  const cits = snap.citizens;
   const mine = cits.find((c) => c.address === me);
   const name = (a) => cits.find((c) => c.address === a)?.name ?? a;
   const out = {
     world: {
-      status: w.status, epoch: `${Math.min(w.epoch, w.seasonEpochs ?? w.season_epochs)}/${w.season_epochs}`,
+      status: w.status, epoch: `${Math.min(w.epoch, w.season_epochs)}/${w.season_epochs}`,
       season: w.conditions.season, event_today: w.conditions.event,
-      seconds_until_this_epoch_ends: Math.max(0, w.next_epoch_at - now),
+      approx_seconds_until_this_epoch_ends: Math.max(0, w.next_epoch_at - Math.floor(Date.now() / 1000)),
       pool_wei: String(w.pool), citizens_alive: `${w.alive}/${w.citizens}`, season_settled: w.settled,
     },
     you: mine
       ? { name: mine.name, alive: mine.alive, score: mine.score, wood: mine.wood, stone: mine.stone, grain: mine.grain, coin: mine.coin, farms: mine.farms,
-          hungry_epochs_in_a_row: mine.hunger, you_can_act_this_epoch: undefined, actions_allowed: mine.actions_done, actions_refused: mine.refused, trades: mine.trades }
+          hungry_epochs_in_a_row: mine.hunger, actions_allowed_so_far: mine.actions_done, actions_refused_so_far: mine.refused, trades: mine.trades }
       : "not a citizen yet: run `join`",
     others: cits.filter((c) => c.address !== me).map((c) => ({ name: c.name, alive: c.alive, score: c.score, wood: c.wood, stone: c.stone, grain: c.grain, coin: c.coin, farms: c.farms, lawful_pct: c.actions_done + c.refused ? Math.floor((100 * c.actions_done) / (c.actions_done + c.refused)) : 100 })),
-    open_offers: offers.map((o) => ({ id: o.id, from: name(o.from), to: name(o.to), give: o.give, want: o.want })),
-    recent_chronicle: chron.slice(-10).map((e) => `[e${e.epoch}] ${e.kind === "action" ? `${e.who}: "${e.text}" -> ${e.outcome}${e.outcome === "done" ? " " + JSON.stringify(Object.fromEntries(Object.entries(e.delta).filter(([, v]) => v))) : ""}` : e.text}`),
-    rules_of_thumb: "The world takes 2 grain from every citizen at the end of each epoch. Two hungry epochs in a row mean starvation and a forfeited bond. You may submit ONE batch of actions per epoch.",
+    open_offers_involving_you: snap.offers.filter((o) => o.from === me || o.to === me).map((o) => ({ id: o.id, from: name(o.from), to: name(o.to), give: o.give, want: o.want })),
+    recent_chronicle: snap.chronicle.slice(-10).map((e) => `[e${e.epoch}] ${e.kind === "action" ? `${e.who}: "${e.text}" -> ${e.outcome}${e.outcome === "done" ? " " + JSON.stringify(Object.fromEntries(Object.entries(e.delta).filter(([, v]) => v))) : ""}` : e.text}`),
+    rules_of_thumb: "The world takes 2 grain from every citizen at the end of each epoch. Two hungry epochs in a row mean starvation and a forfeited bond. You may submit ONE batch of actions per epoch. Each command costs the network a few requests; do not call `look` repeatedly: use `wait`.",
   };
-  // whether this citizen already acted this epoch is visible from the contract record
   console.log(JSON.stringify(out, null, 1));
 }
 
@@ -71,7 +73,7 @@ async function send(fn, args, value = 0n, until = "ACCEPTED") {
 }
 
 async function citizenByName(n) {
-  const cits = await view(reader, address, "list_citizens", []);
+  const cits = (await snapshot()).citizens;
   const c = cits.find((x) => x.name.toLowerCase() === n.toLowerCase() || x.address === n.toLowerCase());
   if (!c) { console.log(`No citizen called ${n}.`); process.exit(1); }
   return c;
@@ -93,16 +95,16 @@ if (cmd === "join") {
   if (actions.length < 1 || actions.length > 6) { console.log("Give between 1 and 6 actions."); process.exit(1); }
   const t0 = Date.now();
   const r = await send("act", [actions]);
-  const chron = await view(reader, address, "get_chronicle", []);
-  const mine = (await view(reader, address, "get_citizen", [me])).name;
-  const last = chron.filter((e) => e.who === mine && e.kind === "action").slice(-actions.length);
+  const snap = await snapshot();
+  const mineName = snap.citizens.find((c) => c.address === me)?.name;
+  const last = snap.chronicle.filter((e) => e.who === mineName && e.kind === "action").slice(-actions.length);
   console.log(`The jury judged your batch in ${Math.round((Date.now() - t0) / 1000)}s:`);
   for (const e of last) console.log(`  "${e.text}" -> ${e.outcome}${e.outcome === "done" ? " " + JSON.stringify(Object.fromEntries(Object.entries(e.delta).filter(([, v]) => v))) : ""}`);
 } else if (cmd === "offer") {
   const [to, give, want] = rest;
   const c = await citizenByName(to);
   const r = await send("offer", [c.address, give, want]);
-  const offers = await view(reader, address, "get_offers", [me]);
+  const offers = (await snapshot()).offers;
   const mine = offers.filter((o) => o.from === me).slice(-1)[0];
   console.log(mine ? `Offer #${mine.id} to ${c.name} is open: you give ${JSON.stringify(mine.give)} for ${JSON.stringify(mine.want)}.` : `The offer was refused (check you can afford it, and the counterparty is alive).`);
 } else if (cmd === "accept") {
@@ -115,12 +117,15 @@ if (cmd === "join") {
   await send("build_farm", []);
   console.log("You built a farm.");
 } else if (cmd === "wait") {
-  const w0 = await world();
-  const start = Date.now();
-  while (Date.now() - start < 8 * 60 * 1000) {
-    const w = await world();
+  // Sleep until the epoch is due (local clock), then poll about once a minute: the request budget is 500 an hour.
+  const w0 = (await snapshot()).world;
+  const deadline = Date.now() + 8 * 60 * 1000;
+  let sleepMs = Math.max(5000, (w0.next_epoch_at - Math.floor(Date.now() / 1000)) * 1000 + 8000);
+  while (Date.now() < deadline) {
+    await sleep(Math.min(sleepMs, deadline - Date.now()));
+    const w = (await snapshot()).world;
     if (w.status !== "RUNNING" || w.epoch !== w0.epoch) break;
-    await sleep(10000);
+    sleepMs = 45000;
   }
   await look();
 } else {

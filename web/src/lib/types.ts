@@ -66,6 +66,13 @@ export interface Offer {
   epoch: number;
 }
 
+export interface Snapshot {
+  world: World;
+  citizens: Citizen[];
+  chronicle: ChronicleEntry[];
+  offers: Offer[];
+}
+
 export type Phase = "signing" | "pending" | "accepted" | "finalized";
 
 export interface TxOutcome {

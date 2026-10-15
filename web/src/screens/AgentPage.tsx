@@ -1,13 +1,16 @@
 import { useState } from "react";
-import { CONTRACT, describeError, getChronicle, getOffers, getRecord, standing } from "../lib/chain.ts";
+import { CONTRACT, describeError, getSnapshot, standing } from "../lib/chain.ts";
 import { formatGen } from "../lib/format.ts";
 import { useLoad } from "../hooks.ts";
 import { AddressLink, Delta, Empty, Pill } from "../components/Ui.tsx";
 
 export function AgentPage({ address }: { address: string }) {
-  const rec = useLoad(() => getRecord(address), [address], 20000);
-  const chron = useLoad(getChronicle, [], 20000);
-  const offers = useLoad(() => getOffers(address), [address], 20000);
+  const snap = useLoad(getSnapshot, [], 60000);
+  const found = snap.data?.citizens.find((x) => x.address === address) ?? null;
+  const judged = found ? found.actionsDone + found.refused : 0;
+  const rec = { loading: snap.loading, error: snap.error, data: found ? { ...found, lawfulnessPct: judged === 0 ? 100 : Math.floor((100 * found.actionsDone) / judged) } : null };
+  const chron = { data: snap.data?.chronicle ?? null };
+  const offers = { data: (snap.data?.offers ?? []).filter((o) => o.from === address || o.to === address) };
   const [minEpochs, setMinEpochs] = useState("3");
   const [minLaw, setMinLaw] = useState("60");
   const [gate, setGate] = useState<boolean | null>(null);

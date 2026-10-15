@@ -72,7 +72,7 @@ export function useChainClock(): number {
         .catch(() => undefined);
     void sync();
     const id = setInterval(() => live && setNow(Math.floor(Date.now() / 1000) + offset), 1000);
-    const resync = setInterval(sync, 60000);
+    const resync = setInterval(sync, 300000); // one request every 5 minutes: the request budget is 500 an hour
     return () => {
       live = false;
       clearInterval(id);

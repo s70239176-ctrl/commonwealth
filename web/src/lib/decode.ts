@@ -1,5 +1,5 @@
 /** Pure decoding: contract view dictionaries -> typed objects, and contract refusals -> plain language. */
-import type { ChronicleEntry, ChronicleKind, Citizen, Offer, Resource, World } from "./types.ts";
+import type { ChronicleEntry, ChronicleKind, Citizen, Offer, Resource, Snapshot, World } from "./types.ts";
 
 export function plain(v: unknown): unknown {
   if (v instanceof Map) return Object.fromEntries([...v.entries()].map(([k, x]) => [String(k), plain(x)]));
@@ -76,6 +76,11 @@ export function toChronicle(r: Raw): ChronicleEntry {
 
 export function toOffer(r: Raw): Offer {
   return { id: num(r.id), from: String(r.from).toLowerCase(), to: String(r.to).toLowerCase(), give: bundle(r.give), want: bundle(r.want), epoch: num(r.epoch) };
+}
+
+export function toSnapshot(r: Raw): Snapshot {
+  const list = (v: unknown): Raw[] => (Array.isArray(v) ? (v as Raw[]) : []);
+  return { world: toWorld(r.world as Raw), citizens: list(r.citizens).map(toCitizen), chronicle: list(r.chronicle).map(toChronicle), offers: list(r.offers).map(toOffer) };
 }
 
 function fromB64(s: string): Uint8Array {

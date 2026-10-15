@@ -11,30 +11,35 @@ const log = [];
 const say = (m) => { const line = `[${new Date().toISOString().slice(11, 19)}] ${m}`; console.log(line); log.push(line); };
 const chainNow = async () => Number(BigInt((await paced(() => reader.request({ method: "eth_getBlockByNumber", params: ["latest", false] }))).timestamp));
 
-say(`keeper watching ${address}`);
+say(`keeper watching ${address} (budget-aware: it sleeps until each epoch is due)`);
+const tNow = async () => Number(BigInt((await paced(() => reader.request({ method: "eth_getBlockByNumber", params: ["latest", false] }))).timestamp));
 for (;;) {
-  const w = await view(reader, address, "get_world", []);
+  const w = (await view(reader, address, "get_snapshot", [0n])).world;
   if (w.status === "RUNNING") {
-    if ((await chainNow()) >= w.next_epoch_at) {
+    const wait = w.next_epoch_at - (await tNow());
+    if (wait <= 0) {
       const r = await write(client, address, "end_epoch", []);
       say(`end_epoch (epoch ${w.epoch}): ${r.revert ?? r.status}`);
+      await sleep(20000);
+    } else {
+      await sleep(Math.min(wait + 3, 150) * 1000);
     }
   } else if (!w.settled) {
     const r = await write(client, address, "settle_season", []);
     say(`settle_season: ${r.revert ?? r.status}`);
+    await sleep(20000);
   } else {
     break;
   }
-  await sleep(15000);
 }
 say("season settled; waiting for payouts to finalize…");
 await sleep(100000);
-const cits = await view(reader, address, "list_citizens", []);
-for (const c of cits) {
-  const rec = await view(reader, address, "get_record", [c.address]);
+const snapEnd = await view(reader, address, "get_snapshot", [5n]);
+for (const c of snapEnd.citizens) {
+  const lawful = c.actions_done + c.refused ? Math.floor((100 * c.actions_done) / (c.actions_done + c.refused)) : 100;
+  const rec = { epochs_survived: c.epochs_survived, lawfulness_pct: lawful, actions_done: c.actions_done, refused: c.refused, trades: c.trades };
   say(`${c.name.padEnd(8)} alive=${c.alive} score=${c.score} survived ${rec.epochs_survived} epochs, lawful ${rec.lawfulness_pct}% (${rec.actions_done} done / ${rec.refused} refused), trades ${rec.trades}, farms ${c.farms}, payout ${c.payout} wei, balance ${await balanceOf(reader, c.address)}`);
 }
-const chron = await view(reader, address, "get_chronicle", []);
-say("chronicle tail: " + chron.slice(-5).map((e) => e.text).join(" | "));
+say("chronicle tail: " + snapEnd.chronicle.slice(-5).map((e) => e.text).join(" | "));
 writeFileSync(new URL("../docs/llm-season-keeper.log", import.meta.url), log.join("\n") + "\n");
 process.exit(0);

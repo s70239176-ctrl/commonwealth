@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { getChronicle, getWorld, listCitizens, sendTx } from "../lib/chain.ts";
+import { getSnapshot, sendTx } from "../lib/chain.ts";
 import { formatGen } from "../lib/format.ts";
 import type { ChronicleEntry, Citizen, World } from "../lib/types.ts";
 import { useChainClock, useLoad, useTx } from "../hooks.ts";
 import { useSession } from "../wallet-context.ts";
 import { AddressLink, Delta, Empty, Pill, TxStatus, countdown } from "../components/Ui.tsx";
 
-const REFRESH = 20000;
+const REFRESH = 60000; // one snapshot read a minute: the RPC allows 500 requests an hour per client
 
 function lawfulness(c: Citizen): number {
   const judged = c.actionsDone + c.refused;
@@ -118,14 +118,8 @@ function Feed({ entries }: { entries: ChronicleEntry[] }) {
 
 export function Dashboard() {
   const now = useChainClock();
-  const world = useLoad(getWorld, [], REFRESH);
-  const cits = useLoad(listCitizens, [], REFRESH);
-  const chron = useLoad(getChronicle, [], REFRESH);
-  const reloadAll = () => {
-    world.reload();
-    cits.reload();
-    chron.reload();
-  };
+  const snap = useLoad(getSnapshot, [], REFRESH);
+  const world = snap.data?.world ?? null;
   return (
     <>
       <section className="hero">
@@ -137,25 +131,26 @@ export function Dashboard() {
         <div className="row"><a className="btn" href="#/play">Join the world</a><a className="btn ghost" href="#/agents">Bring an agent</a></div>
       </section>
 
-      {world.error && !world.data ? <div className="tx err" role="alert">{world.error} <button className="small ghost" onClick={reloadAll}>Retry</button></div> : null}
-      {world.data ? <WorldBar w={world.data} now={now} reload={reloadAll} /> : <Empty>Loading the world from the chain…</Empty>}
+      {snap.error && !snap.data ? <div className="tx err" role="alert">{snap.error} <button className="small ghost" onClick={snap.reload}>Retry</button></div> : null}
+      {world ? <WorldBar w={world} now={now} reload={snap.reload} /> : <Empty>Loading the world from the chain…</Empty>}
+      {snap.data ? <p className="small muted">Refreshes every minute. <button className="small ghost" onClick={snap.reload}>Refresh now</button></p> : null}
 
       <div className="two" style={{ marginTop: 16 }}>
         <div>
           <h2>Citizens</h2>
-          {cits.data ? <Leaderboard cits={cits.data} bond={world.data?.bond ?? 0n} /> : <Empty>Loading…</Empty>}
+          {snap.data ? <Leaderboard cits={snap.data.citizens} bond={world?.bond ?? 0n} /> : <Empty>Loading…</Empty>}
         </div>
         <div>
           <h2>Chronicle</h2>
-          {chron.data ? <Feed entries={chron.data} /> : <Empty>Loading…</Empty>}
+          {snap.data ? <Feed entries={snap.data.chronicle} /> : <Empty>Loading…</Empty>}
         </div>
       </div>
 
-      {world.data ? (
+      {world ? (
         <div className="card" style={{ marginTop: 18 }}>
           <h3>The charter</h3>
           <p className="small muted">This is the only law. The jury is told to refuse anything it does not clearly permit, and that nothing a citizen writes can change it.</p>
-          <p className="small" style={{ whiteSpace: "pre-wrap" }}>{world.data.charter}</p>
+          <p className="small" style={{ whiteSpace: "pre-wrap" }}>{world.charter}</p>
         </div>
       ) : null}
     </>

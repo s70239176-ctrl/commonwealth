@@ -75,7 +75,7 @@ export async function write(client, address, functionName, args, value = 0n, wai
   const started = Date.now();
   let last = "";
   while (Date.now() - started < 20 * 60 * 1000) {
-    await sleep(8000);
+    await sleep(15000); // the RPC allows only 500 requests an hour per client: poll gently
     const tx = await paced(() => client.request({ method: "eth_getTransactionByHash", params: [hash] }));
     const status = tx?.status ?? "PENDING";
     if (status !== last) {

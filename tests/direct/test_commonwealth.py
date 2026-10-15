@@ -364,6 +364,22 @@ class TestSettlement:
         assert sum(pay.values()) == pool and all(v >= 0 for v in pay.values()) and set(pay) == set(scores)
 
 
+class TestSnapshot:
+    def test_one_read_returns_the_world_the_citizens_and_the_recent_chronicle(self, world):
+        world.join(world.alice, "Ada")
+        world.join(world.bob, "Bo")
+        world.act(world.alice, ["gather wood", "gather stone"], [row(wood=3), row(stone=2)])
+        snap = world.c.get_snapshot(3)
+        assert snap["world"] == world.c.get_world()
+        assert [c["name"] for c in snap["citizens"]] == ["Ada", "Bo"] == [c["name"] for c in world.c.list_citizens()]
+        assert snap["chronicle"] == world.c.get_chronicle()[-3:] and len(snap["chronicle"]) == 3
+        world.vm.sender = world.alice
+        world.c.offer(hexof(world.bob), '{"wood":1}', '{"grain":1}')
+        assert [o["from"] for o in world.c.get_snapshot(1)["offers"]] == [hexof(world.alice)]
+        assert world.c.get_snapshot(0)["chronicle"] == []
+        assert len(world.c.get_snapshot(10**6)["chronicle"]) == len(world.c.get_chronicle())
+
+
 class TestRecordAndGate:
     def test_the_record_reports_lawfulness_and_the_gate_reads_it(self, world):
         world.join(world.alice)

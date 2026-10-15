@@ -30,3 +30,16 @@ scripts, not language-model agents; one run on a test network.
 
 Clear and adversarial batches repeated identically; the one divergence was an ambiguous action (trading with an NPC the
 charter does not mention), which is why trades are now a code-only mechanism. Raw output: `docs/spike-log.txt`.
+
+## The live LLM season, attempt 1: what went wrong (my fault)
+
+Four real LLM sub-agents (a farmer, a profit-maximiser, a red-teamer, a diplomat) played through a CLI against a live world.
+It did not finish. Studionet allows **500 requests per hour per client**, shared by everything on one machine, and my setup
+(four agents each polling, a keeper polling, an open dashboard tab, SDK retries) used it up in about one and a half epochs.
+After that every read hung or failed. Before it did, in epoch 2 (summer, drought) Ada, Bo and Cy each built a farm and gathered;
+the jury allowed the honest actions. No attack on the jury was observed, and no verdict on any attack was seen, so nothing can be
+claimed about the red-teamer. The scripted seasons above are the evidence so far.
+
+The fix, now in the code: one `get_snapshot` view returns the world, citizens, recent chronicle and open offers in a single
+read; the CLI `look` and the dashboard use only that (the dashboard refreshes once a minute, about 60 requests an hour);
+`wait` and the keeper sleep until `next_epoch_at` instead of polling; transaction polling is every 15 s.

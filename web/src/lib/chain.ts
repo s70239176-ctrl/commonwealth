@@ -5,8 +5,8 @@
  */
 import { createAccount, createClient } from "genlayer-js";
 import { studionet } from "genlayer-js/chains";
-import type { ChronicleEntry, Citizen, Offer, Phase, TxOutcome, World } from "./types.ts";
-import { REFUSALS, TIME_DEPENDENT, decodeRevert, plain, refusalKey, toChronicle, toCitizen, toOffer, toWorld, type Raw } from "./decode.ts";
+import type { ChronicleEntry, Citizen, Offer, Phase, Snapshot, TxOutcome, World } from "./types.ts";
+import { REFUSALS, TIME_DEPENDENT, decodeRevert, plain, refusalKey, toChronicle, toCitizen, toOffer, toSnapshot, toWorld, type Raw } from "./decode.ts";
 import { decodeReceiptResult } from "./calldata.ts";
 import { assertSignerReady, getProvider, type Signer } from "./signer.ts";
 
@@ -90,6 +90,14 @@ function need(): void {
 async function view(functionName: string, args: unknown[]): Promise<unknown> {
   need();
   return plain(await paced(() => readClient().readContract({ address: CONTRACT as Hex, functionName, args })));
+}
+
+/**
+ * EVERYTHING a screen needs in ONE read. The hosted RPC allows only 500 requests an hour per client, so the app polls this
+ * once a minute (about 60 requests an hour) instead of several views every few seconds.
+ */
+export async function getSnapshot(chronicleItems = 40): Promise<Snapshot> {
+  return toSnapshot((await view("get_snapshot", [BigInt(chronicleItems)])) as Raw);
 }
 
 export async function getWorld(): Promise<World> {
