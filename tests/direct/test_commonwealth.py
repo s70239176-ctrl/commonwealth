@@ -11,7 +11,7 @@ class TestRegistration:
     def test_register_posts_the_bond_and_grants_starting_holdings(self, world):
         assert world.join(world.alice)["ok"]
         c = world.get(world.alice)
-        assert (c["wood"], c["stone"], c["grain"], c["coin"]) == (10, 5, 10, 0)
+        assert (c["wood"], c["stone"], c["grain"], c["coin"]) == (10, 5, 4, 0)
         assert c["alive"] and c["bond"] == BOND
         w = world.c.get_world()
         assert w["pool"] == BOND and w["citizens"] == 1 and w["status"] == "RUNNING"
@@ -124,7 +124,7 @@ class TestTrades:
         world.vm.sender = world.bob
         assert world.c.accept(res["id"]) == "traded"
         a, b = world.get(world.alice), world.get(world.bob)
-        assert (a["wood"], a["grain"], b["wood"], b["grain"]) == (6, 13, 14, 7)
+        assert (a["wood"], a["grain"], b["wood"], b["grain"]) == (6, 7, 14, 1)
         assert a["trades"] == b["trades"] == 1
         assert world.llm_prompts == []
 
@@ -219,22 +219,22 @@ class TestEpochsAndStarvation:
         with world.vm.expect_revert("epoch not over"):
             world.c.end_epoch()
         assert world.end_epoch() == "next"
-        assert world.get(world.alice)["grain"] == 9 and world.c.get_world()["epoch"] == 2
+        assert world.get(world.alice)["grain"] == 2 and world.c.get_world()["epoch"] == 2
 
-    def test_no_grain_means_hunger_and_three_hungry_epochs_mean_death(self, world):
+    def test_no_grain_means_hunger_and_two_hungry_epochs_mean_death(self, world):
         world.join(world.alice)
-        world.act(world.alice, ["feast"], [row(grain=-10)])  # spends all grain (jury allowed it)
-        for expected in (1, 2):
-            world.end_epoch()
-            assert world.get(world.alice)["hunger"] == expected and world.get(world.alice)["alive"]
+        world.act(world.alice, ["feast"], [row(grain=-4)])  # spends all grain (jury allowed it)
         world.end_epoch()
         c = world.get(world.alice)
-        assert not c["alive"] and c["died_epoch"] == 3
-        assert "starved" in world.c.get_chronicle()[-3]["text"] or any(e["kind"] == "death" for e in world.c.get_chronicle())
+        assert c["hunger"] == 1 and c["alive"]
+        world.end_epoch()
+        c = world.get(world.alice)
+        assert not c["alive"] and c["died_epoch"] == 2
+        assert any(e["kind"] == "death" for e in world.c.get_chronicle())
 
     def test_eating_resets_hunger(self, world):
         world.join(world.alice)
-        world.act(world.alice, ["feast"], [row(grain=-10)])
+        world.act(world.alice, ["feast"], [row(grain=-4)])
         world.end_epoch()
         assert world.get(world.alice)["hunger"] == 1
         world.act(world.alice, ["gather grain"], [row(grain=5)])
@@ -244,12 +244,14 @@ class TestEpochsAndStarvation:
     def test_a_dead_citizen_cannot_act_trade_or_be_traded_with(self, world):
         world.join(world.alice)
         world.join(world.bob)
-        world.act(world.alice, ["feast"], [row(grain=-10)])
-        for _ in range(3):
+        world.act(world.alice, ["feast"], [row(grain=-4)])
+        for _ in range(2):
             world.end_epoch()
         world.vm.sender = world.alice
         with world.vm.expect_revert("not alive"):
             world.c.act(["gather"])
+        with world.vm.expect_revert("not alive"):
+            world.c.build_farm()
         world.vm.sender = world.bob
         assert world.c.offer(hexof(world.alice), '{"wood":1}', '{"grain":1}')["reason"] == "counterparty not alive"
 
@@ -266,6 +268,45 @@ class TestEpochsAndStarvation:
         assert world.join(world.bob)["reason"] == "season over"
 
 
+class TestFarms:
+    def _rich(self, world, who):
+        world.act(who, ["gather wood", "gather stone"], [row(wood=5), row(stone=5)])
+
+    def test_a_farm_costs_what_the_code_says_and_nothing_else(self, world):
+        world.join(world.alice)
+        world.vm.sender = world.alice
+        assert world.c.build_farm() == "built"
+        c = world.get(world.alice)
+        assert (c["farms"], c["wood"], c["stone"]) == (1, 5, 2)
+        assert c["score"] == 5 + 2 + 4 + 0 + module().FARM_SCORE
+        assert world.llm_prompts == []  # no model is ever asked what a structure costs
+
+    def test_farms_are_limited_and_must_be_affordable(self, world):
+        world.join(world.alice)
+        world.vm.sender = world.alice
+        world.c.build_farm()
+        with world.vm.expect_revert("you cannot afford a farm"):
+            world.c.build_farm()  # 5 wood and 2 stone left
+        self._rich(world, world.alice)
+        world.vm.sender = world.alice
+        world.c.build_farm()
+        self._rich(world, world.alice) if False else None
+        with world.vm.expect_revert("farm limit"):
+            world.c.build_farm()
+
+    def test_the_jury_is_told_which_structures_a_citizen_owns(self, world):
+        world.join(world.alice)
+        world.vm.sender = world.alice
+        world.c.build_farm()
+        world.act(world.alice, ["gather grain"], [row(grain=7)])
+        assert '"farms": 1' in world.llm_prompts[0]
+
+    def test_membership_is_required(self, world):
+        world.vm.sender = world.bob
+        with world.vm.expect_revert("not registered"):
+            world.c.build_farm()
+
+
 class TestSettlement:
     def _season(self, world, plan):
         """plan: {who: result row for one action}; then run the season out with everyone fed."""
@@ -273,7 +314,7 @@ class TestSettlement:
             world.join(who, hexof(who)[:6])
         for who, r in plan.items():
             world.act(who, ["do something"], [r])
-        world.run_to_end()
+        world.run_to_end(feed=list(plan))
 
     def test_survivors_share_the_pool_by_score_and_every_unit_is_accounted_for(self, world):
         self._season(world, {world.alice: row(wood=10), world.bob: row(stone=4), world.charlie: row(grain=2)})
@@ -289,8 +330,8 @@ class TestSettlement:
     def test_a_starved_citizen_forfeits_their_bond_to_the_survivors(self, world):
         world.join(world.alice)
         world.join(world.bob)
-        world.act(world.bob, ["feast"], [row(grain=-10)])
-        world.run_to_end()
+        world.act(world.bob, ["feast"], [row(grain=-4)])
+        world.run_to_end(feed=[world.alice])
         world.vm.sender = world.charlie
         world.c.settle_season()
         assert world.paid_to(world.bob) == 0 and world.paid_to(world.alice) == 2 * BOND
@@ -299,8 +340,8 @@ class TestSettlement:
     def test_if_nobody_survives_every_bond_is_returned(self, world):
         world.join(world.alice)
         world.join(world.bob)
-        world.act(world.alice, ["feast"], [row(grain=-10)])
-        world.act(world.bob, ["feast"], [row(grain=-10)])
+        world.act(world.alice, ["feast"], [row(grain=-4)])
+        world.act(world.bob, ["feast"], [row(grain=-4)])
         world.run_to_end()
         world.vm.sender = world.charlie
         world.c.settle_season()
@@ -337,8 +378,8 @@ class TestRecordAndGate:
 
     def test_a_dead_agent_has_no_standing(self, world):
         world.join(world.alice)
-        world.act(world.alice, ["feast"], [row(grain=-10)])
-        for _ in range(3):
+        world.act(world.alice, ["feast"], [row(grain=-4)])
+        for _ in range(2):
             world.end_epoch()
         assert world.c.standing(hexof(world.alice), 0, 0) is False
 

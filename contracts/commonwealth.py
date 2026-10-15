@@ -7,7 +7,7 @@ charter and the CURRENT CONDITIONS (season and event). Plain code decides everyt
 
   * hard invariants on every judged result: no holding below zero, bounded gains, a refused action moves nothing;
   * TRADES are a code-defined two-party mechanism (offer / accept): no model is ever asked who gets what from whom;
-  * upkeep (1 grain per epoch), hunger and starvation, and the season payout are arithmetic.
+  * upkeep (2 grain per epoch), hunger and starvation, and the season payout are arithmetic.
 
 THE STAKES. Registering posts a bond. A citizen who starves is eliminated and forfeits it into the pool. When the season
 ends the whole pool is paid to the survivors in proportion to their holdings. If nobody survives, every bond is returned.
@@ -26,7 +26,7 @@ import json
 from datetime import datetime
 
 RESOURCES = ("wood", "stone", "grain", "coin")
-START = {"wood": 10, "stone": 5, "grain": 10, "coin": 0}
+START = {"wood": 10, "stone": 5, "grain": 4, "coin": 0}
 MAX_ACTIONS = 6
 MAX_ACTION_CHARS = 300
 MAX_CHARTER = 4000
@@ -34,8 +34,11 @@ MAX_DELTA = 50
 MAX_GAIN = 10
 MAX_CITIZENS = 24
 MAX_OPEN_OFFERS = 3
-UPKEEP_GRAIN = 1
-STARVE_AFTER = 3  # consecutive epochs without grain
+UPKEEP_GRAIN = 2  # eaten by every citizen each epoch
+STARVE_AFTER = 2  # consecutive epochs unable to eat
+FARM_COST = {"wood": 5, "stone": 3}  # priced in CODE: the model never decides what a structure costs
+MAX_FARMS = 2
+FARM_SCORE = 6
 CHRONICLE_KEEP = 60
 SEASONS = ("spring", "summer", "autumn", "winter")
 EVENTS = ("calm weather", "drought", "heavy rain", "bountiful harvest", "raiders on the roads", "river in flood")
@@ -169,7 +172,7 @@ def _defang(text: str) -> str:
     return text.replace("<<<", "< < <").replace(">>>", "> > >")
 
 
-def _prompt(charter: str, conditions: dict, holdings: dict, actions: list) -> str:
+def _prompt(charter: str, conditions: dict, holdings: dict, structures: dict, actions: list) -> str:
     lines = [str(i + 1) + ". " + a for i, a in enumerate(actions)]
     return (
         "COMMONWEALTH_JUDGE\n"
@@ -184,16 +187,17 @@ def _prompt(charter: str, conditions: dict, holdings: dict, actions: list) -> st
         "CHARTER:\n<<<CHARTER\n" + _defang(charter) + "\n>>>\n"
         "CONDITIONS: " + json.dumps(conditions, sort_keys=True) + "\n"
         "HOLDINGS: " + json.dumps(holdings, sort_keys=True) + "\n"
+        "STRUCTURES OWNED: " + json.dumps(structures, sort_keys=True) + "\n"
         "ACTIONS:\n<<<ACTIONS\n" + "\n".join(_defang(l) for l in lines) + "\n>>>\n"
         'Answer JSON only: {"results": [{"ok": true|false, "wood": 0, "stone": 0, "grain": 0, "coin": 0}, ...]} '
         "with exactly " + str(len(actions)) + " entries, in order."
     )
 
 
-def _judge(charter: str, conditions: dict, holdings: dict, actions: list):
+def _judge(charter: str, conditions: dict, holdings: dict, structures: dict, actions: list):
     """One independent observation, re-run by the leader AND every validator. Normalized results or None."""
     try:
-        raw = gl.nondet.exec_prompt(_prompt(charter, conditions, holdings, actions), response_format="json")
+        raw = gl.nondet.exec_prompt(_prompt(charter, conditions, holdings, structures, actions), response_format="json")
     except Exception:
         return None
     return normalize_results(_parse_json(raw), len(actions))
@@ -219,6 +223,7 @@ class Citizen:
     refused: u256
     trades: u256
     payout: u256
+    farms: u256
 
 
 @allow_storage
@@ -312,7 +317,7 @@ class Commonwealth(gl.Contract):
         return self.citizens[key]
 
     def _score(self, c: Citizen) -> int:
-        return int(c.wood) + int(c.stone) + int(c.grain) + int(c.coin)
+        return int(c.wood) + int(c.stone) + int(c.grain) + int(c.coin) + FARM_SCORE * int(c.farms)
 
     def _view(self, key: str, c: Citizen) -> dict:
         survived = (int(c.died_epoch) if not c.alive else int(self.epoch)) - int(c.joined_epoch)
@@ -322,6 +327,7 @@ class Commonwealth(gl.Contract):
             "alive": c.alive,
             "score": self._score(c),
             **self._holdings(c),
+            "farms": int(c.farms),
             "bond": int(c.bond),
             "hunger": int(c.hunger),
             "joined_epoch": int(c.joined_epoch),
@@ -357,7 +363,7 @@ class Commonwealth(gl.Contract):
             name=name.strip(), wood=u256(START["wood"]), stone=u256(START["stone"]), grain=u256(START["grain"]),
             coin=u256(START["coin"]), bond=u256(value), alive=True, hunger=u256(0), last_act_epoch=u256(0),
             joined_epoch=self.epoch, died_epoch=u256(0), batches=u256(0), actions_done=u256(0), refused=u256(0),
-            trades=u256(0), payout=u256(0),
+            trades=u256(0), payout=u256(0), farms=u256(0),
         )
         keys.append(key)
         self.keys_json = json.dumps(keys)
@@ -384,11 +390,12 @@ class Commonwealth(gl.Contract):
                 _fail("bad action")
             clean.append(a.strip())
         holdings = self._holdings(c)
+        structures = {"farms": int(c.farms)}
         charter = str(self.charter)
         conditions = conditions_for(int(self.epoch), int(self.season_epochs))
 
         def leader_fn():
-            mine = _judge(charter, conditions, holdings, clean)
+            mine = _judge(charter, conditions, holdings, structures, clean)
             return mine if mine is not None else {"invalid": True}
 
         def validator_fn(leader_res) -> bool:
@@ -399,7 +406,7 @@ class Commonwealth(gl.Contract):
             lead = normalize_results({"results": leader_res.calldata}, len(clean))
             if lead is None or lead != leader_res.calldata:
                 return False
-            mine = _judge(charter, conditions, holdings, clean)
+            mine = _judge(charter, conditions, holdings, structures, clean)
             return mine is not None and lead == mine  # every ok flag and every number, never prose
 
         env = gl.vm.run_nondet_unsafe(leader_fn, validator_fn)
@@ -416,6 +423,26 @@ class Commonwealth(gl.Contract):
         for text, row, outcome in zip(clean, results, outcomes):
             self._log("action", c.name, text, {"outcome": outcome, "delta": {r: row[r] for r in RESOURCES}})
         return outcomes
+
+    @gl.public.write
+    def build_farm(self) -> str:
+        """A structure, priced in code. The model never decides what a farm costs; the charter says what a farm does."""
+        c = self._citizen(self._key())
+        if self.status != R_RUNNING:
+            _fail("season over")
+        if not c.alive:
+            _fail("not alive")
+        if int(c.farms) >= MAX_FARMS:
+            _fail("farm limit")
+        h = self._holdings(c)
+        if any(h[r] < n for r, n in FARM_COST.items()):
+            _fail("you cannot afford a farm")
+        for r, n in FARM_COST.items():
+            h[r] -= n
+        self._set(c, h)
+        c.farms = u256(int(c.farms) + 1)
+        self._log("build", c.name, c.name + " built farm number " + str(int(c.farms)))
+        return "built"
 
     @gl.public.write
     def offer(self, to: str, give_json: str, want_json: str) -> dict:

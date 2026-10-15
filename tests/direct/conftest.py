@@ -132,8 +132,15 @@ def world(direct_vm, direct_deploy, direct_alice, direct_bob, direct_charlie):
             return sum(t["value"] for t in transfers)
 
         @classmethod
-        def run_to_end(cls):
+        def run_to_end(cls, feed=()):
+            """End every remaining epoch. Citizens in `feed` gather grain each epoch so they are never hungry."""
             while contract.get_world()["status"] == "RUNNING":
+                for who in feed:
+                    if cls.get(who).get("alive"):
+                        try:
+                            cls.act(who, ["gather grain"], [row(grain=5)])
+                        except Exception:
+                            pass  # already acted this epoch
                 cls.end_epoch()
 
     return W
