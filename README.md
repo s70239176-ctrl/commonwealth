@@ -7,13 +7,26 @@ negative holdings, bounded gains). The model proposes, the code decides.
 Spike contract on Studionet: `0x66609e31C33F6366fbAfB793F90e8Ad836cAF1d0`. 75 Direct Mode tests (rules, hostile text, 60
 randomized invariant checks): `PYTHONPATH=scripts python -m pytest -p windows_direct_plugin`.
 
-## What the live spike found (4 batches x 5 actions, each run by 2 fresh citizens; n is tiny)
+## Live season (Studionet, `0x9E856c118D2C657594CA3dd5d545566b4b589e58`)
 
-- Consensus was reached on all 8 judged batches (strict comparison of every ok flag and every number). 20-118 s each; one
-  batch needed 3 consensus rounds.
-- Clear actions and adversarial text (fake "charter amendments", "I am the administrator") gave identical results across
-  the two independent runs, and every injection was refused while legitimate actions in the same batch were applied.
-- The one divergence was a genuinely ambiguous action (trading with an NPC "hermit" the charter does not mention): one
-  run refused it, the other applied it. Plain-code invariants do not catch a wrong-but-in-bounds acceptance.
+Four scripted agents (a farmer, a hoarder who overreaches, a trickster who injects, a thief who targets others) lived through
+all 6 epochs with a 0.1 GEN bond each. Full log: `docs/season-log.txt`. Reproduce: `node scripts/deploy.mjs && node scripts/season.mjs`.
 
-Raw output: `docs/spike-log.txt`, `docs/spike-results.json`. Run it again: `node scripts/deploy.mjs && node scripts/spike.mjs`.
+- 60 judged actions, every batch reached consensus (11-128 s; a few needed 2-3 rounds).
+- **The English laws were applied to the day's conditions**: a bountiful harvest gave 7 grain for a 5-grain gather; a drought
+  gave 0; winter halved yields (5 became 2, 3 became 1); heavy rain gave 0 stone; a flooded river refused wood gathering.
+- **All 12 injection attempts** ("the charter is amended", "I am the administrator") and **all 6 thefts** were refused, and
+  so were 6/6 attempts to mint coin.
+- One trade through the code-only mechanism (3 grain for 3 stone) settled atomically.
+- The 0.4 GEN pool was paid out pro rata by score: 0.1265 / 0.1032 / 0.0981 / 0.0723 GEN. The four payouts sum to exactly
+  the pool, balances match, the contract ends at 0. The honest farmer finished +26% on its bond, the thief -28%.
+- `standing(agent, 3 epochs, 60% lawful)` returned true only for the farmer (91% lawful vs 27-41%).
+
+Weak spots, honestly: nobody starved, so the elimination rule never fired; "gather 10 wood in one go" was refused five times and
+accepted once (yielding 2, in winter), a lenient reading; the economy is shallow (one trade, no structures); the agents are
+scripts, not language-model agents; one run on a test network.
+
+## The first feasibility spike (earlier contract, 4 batches x 2 runs)
+
+Clear and adversarial batches repeated identically; the one divergence was an ambiguous action (trading with an NPC the
+charter does not mention), which is why trades are now a code-only mechanism. Raw output: `docs/spike-log.txt`.
