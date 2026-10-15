@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { REFUSALS, decodeRevert, describeError, toChronicle, toCitizen, toOffer, toWorld } from "./decode.ts";
 import { formatGen, parseGen } from "./format.ts";
+import { RULES } from "./rules.ts";
 
 test("every refusal the contract can raise has a plain-language message", () => {
   const src = readFileSync(new URL("../../../contracts/commonwealth.py", import.meta.url), "utf8");
@@ -58,4 +59,20 @@ test("revert payloads decode to the contract's own words", () => {
 test("GEN amounts round-trip exactly", () => {
   assert.equal(parseGen("0.1"), 100000000000000000n);
   assert.equal(formatGen(126451612903225807n), "0.1264");
+});
+
+test("the rules shown in the app match the contract source", () => {
+  const src = readFileSync(new URL("../../../contracts/commonwealth.py", import.meta.url), "utf8");
+  const num = (name: string) => Number(src.match(new RegExp(`^${name} = (\\d+)`, "m"))?.[1]);
+  assert.equal(num("UPKEEP_GRAIN"), RULES.upkeepGrain);
+  assert.equal(num("STARVE_AFTER"), RULES.starveAfterEpochs);
+  assert.equal(num("MAX_FARMS"), RULES.maxFarms);
+  assert.equal(num("FARM_SCORE"), RULES.farmScore);
+  assert.equal(num("MAX_GAIN"), RULES.maxGainPerAction);
+  assert.equal(num("MAX_ACTIONS"), RULES.maxActionsPerBatch);
+  assert.equal(num("MAX_ACTION_CHARS"), RULES.maxActionChars);
+  assert.equal(num("MAX_OPEN_OFFERS"), RULES.maxOpenOffers);
+  assert.equal(num("MAX_CITIZENS"), RULES.maxCitizens);
+  const cost = src.match(/^FARM_COST = \{"wood": (\d+), "stone": (\d+)\}/m);
+  assert.deepEqual([Number(cost?.[1]), Number(cost?.[2])], [RULES.farmCost.wood, RULES.farmCost.stone]);
 });

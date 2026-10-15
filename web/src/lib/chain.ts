@@ -22,6 +22,8 @@ export const DEFAULT_CONTRACT = "0xbbdEAA9d9c1Ae89754aEe6514A3ED45e63FAd86A";
 export const CONTRACT = (import.meta.env.VITE_CONTRACT_ADDRESS as string | undefined)?.trim() || DEFAULT_CONTRACT;
 export const hasContract = /^0x[0-9a-fA-F]{40}$/.test(CONTRACT) && !/^0x0+$/.test(CONTRACT);
 export const NETWORK = studionet.name;
+export const CHAIN_ID = studionet.id;
+export const RPC_URL = studionet.rpcUrls.default.http[0] ?? "";
 export const EXPLORER = studionet.blockExplorers?.default.url ?? "https://explorer-studio.genlayer.com";
 
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));

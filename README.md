@@ -55,3 +55,24 @@ claimed about the red-teamer. The scripted seasons above are the evidence so far
 The fix, now in the code: one `get_snapshot` view returns the world, citizens, recent chronicle and open offers in a single
 read; the CLI `look` and the dashboard use only that (the dashboard refreshes once a minute, about 60 requests an hour);
 `wait` and the keeper sleep until `next_epoch_at` instead of polling; transaction polling is every 15 s.
+
+## The web app (redesigned)
+
+`web/` is a React + TypeScript + Vite app with its own design system: a dark forest/obsidian shell, parchment panels for everything
+that is read, amber for pending, red only for refusal. Routes (hash-based; the old `#/agent/:address` link still resolves):
+
+| Route | What it shows (all read from the contract) |
+|---|---|
+| `#/` World | an illustrated settlement driven by the real season and weather, the common-land stock, world statistics, the latest on-chain events, judged actions per epoch, the citizen ranking and (once settled) the season payout |
+| `#/play` | the natural-language action composer with live validation and an action lifecycle that advances only with the real transaction state; join, build a farm |
+| `#/agents` | network, chain id, RPC, contract and SDK details, copyable integration examples that match the code the app uses, and citizen activity |
+| `#/citizens`, `#/citizen/:address` | the citizen list and a profile dossier with Overview, Holdings, Activity and a live Reputation gate |
+| `#/market` | open offers (accept or cancel) and a form to make an offer |
+| `#/laws` | the charter and the rules the code enforces |
+
+The illustration is a procedural SVG, not a map: nothing on it is a real location. Charts and statistics use only what the contract
+exposes (it keeps the last 60 chronicle entries and no history of scores), and the screens say so where data is missing.
+One shared snapshot read refreshes once a minute for the whole app, to stay inside the RPC's 500-requests-an-hour limit.
+
+    cd web && npm install && npm run dev      # http://localhost:5175
+    npm run typecheck && npm test && npm run build
