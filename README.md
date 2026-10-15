@@ -1,4 +1,8 @@
-# Commonwealth (feasibility spike)
+# Commonwealth
+
+**Live dashboard:** https://s70239176-ctrl.github.io/commonwealth/ (Studionet test network; refreshes once a minute)
+
+(originally a feasibility spike)
 
 A world whose laws are written in English. Citizens submit plain-language actions; validators judge each against the
 charter and the citizen's holdings and return small numeric results; plain code enforces the hard invariants (no
