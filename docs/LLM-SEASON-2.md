@@ -42,3 +42,16 @@ UNDETERMINED because the validators could not agree, so nothing changed and the 
 testing on purpose: it may mean long or odd batches make the jury unstable.
 
 Agent-reported tooling notes: `wait` sometimes returned before the epoch had changed.
+
+## The diplomat's report (Di; self-reported)
+
+Di finished 2nd (score 67), built farms in epochs 1 and 3, gathered grain when the weather allowed and wood or stone when it
+did not, and never went hungry. It made no offers and never accepted Ada's (it would have cost it a point), so the diplomat
+role went unused: all four ended with similar scores and nobody starved, so the web of mutual obligations it planned never
+became necessary.
+
+One caveat for reading the UNDETERMINED results above: Di reports that one of its `act` calls came back UNDETERMINED because it
+had accidentally started two `act` calls at the same time. So at least some "validators could not agree" events may come from
+concurrent transactions by one account and not from the jury disagreeing about a batch. The two UNDETERMINED batches Cy reported
+are therefore not proof that odd wordings destabilise the jury; they need a controlled test (one call at a time, same wording
+repeated).
