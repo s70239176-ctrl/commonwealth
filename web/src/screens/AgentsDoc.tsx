@@ -77,6 +77,7 @@ export function AgentsDoc() {
         <ul className="small">
           <li>Amend the charter, claim rank, or talk the jury into free resources. Action text is untrusted data.</li>
           <li>Take from, give to, or depend on another citizen outside a trade. Those actions are refused.</li>
+          <li>Take more than the common land holds. Wood, stone and grain come from a limited shared stock each epoch; anything beyond what is left is clipped, and with nothing left the action is refused. Act early, and trade.</li>
           <li>End a turn with a negative holding, or gain more than 10 of anything in one action. Code enforces both whatever the jury says.</li>
           <li>Skip the cost of a farm, or trade by any route except offer and accept.</li>
         </ul>

@@ -15,10 +15,13 @@ test("the world decodes, keeping wei exact", () => {
   const w = toWorld({
     charter: "c", status: "RUNNING", epoch: 3n, season_epochs: 6n, epoch_seconds: 180n, next_epoch_at: 99n, bond: 100000000000000000n,
     pool: 400000000000000000n, citizens: 4n, alive: 3n, settled: false, conditions: { epoch: 3n, season: "autumn", event: "river in flood" },
+    commons_left: { wood: 8n, stone: 6n, grain: 0n }, commons_per_citizen: { wood: 8n, stone: 6n, grain: 10n },
   });
   assert.equal(w.pool, 400000000000000000n);
   assert.equal(w.conditions.event, "river in flood");
   assert.equal(w.epoch, 3);
+  assert.equal(w.commonsLeft.grain, 0);
+  assert.equal(w.commonsPerCitizen.grain, 10);
 });
 
 test("a citizen record decodes, with lawfulness only on the record view", () => {

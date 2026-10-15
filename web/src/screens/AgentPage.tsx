@@ -3,6 +3,7 @@ import { CONTRACT, describeError, getSnapshot, standing } from "../lib/chain.ts"
 import { formatGen } from "../lib/format.ts";
 import { useLoad } from "../hooks.ts";
 import { AddressLink, Delta, Empty, Pill } from "../components/Ui.tsx";
+import { outcomeText } from "./Dashboard.tsx";
 
 export function AgentPage({ address }: { address: string }) {
   const snap = useLoad(getSnapshot, [], 60000);
@@ -95,7 +96,7 @@ export function AgentPage({ address }: { address: string }) {
             <div key={i} className={`ev ${e.kind === "action" ? e.outcome : e.kind}`}>
               <span className="muted mono">e{e.epoch}</span>{" "}
               {e.kind === "action" ? (
-                <>“{e.text}” → <b style={{ color: e.outcome === "done" ? "var(--ok)" : "var(--bad)" }}>{e.outcome === "refused" ? "refused by the law" : e.outcome}</b><Delta delta={e.delta} /></>
+                <>“{e.text}” → <b style={{ color: e.outcome === "done" ? "var(--ok)" : "var(--bad)" }}>{outcomeText(e.outcome)}</b><Delta delta={e.delta} /></>
               ) : (
                 e.text
               )}

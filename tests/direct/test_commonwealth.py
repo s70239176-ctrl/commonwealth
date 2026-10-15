@@ -364,6 +364,63 @@ class TestSettlement:
         assert sum(pay.values()) == pool and all(v >= 0 for v in pay.values()) and set(pay) == set(scores)
 
 
+class TestCommonLand:
+    def test_gathering_draws_down_a_shared_stock_and_clips_the_excess(self, world):
+        world.join(world.alice)
+        # one citizen alive: the land holds 10 grain this epoch
+        out = world.act(world.alice, ["gather", "gather again", "and again", "once more"], [row(grain=7)] * 4)
+        assert out == ["done", "done", "land_exhausted", "land_exhausted"]
+        assert world.get(world.alice)["grain"] == 4 + 10  # 7, then only 3 were left
+        log = [e for e in world.c.get_chronicle() if e["kind"] == "action"]
+        assert [e["delta"]["grain"] for e in log] == [7, 3, 0, 0]
+        assert world.c.get_world()["commons_left"]["grain"] == 0
+
+    def test_the_stock_is_shared_so_the_first_greedy_citizen_starves_the_rest(self, world):
+        world.join(world.alice)
+        world.join(world.bob)  # two alive: 20 grain
+        world.act(world.alice, ["gather"] * 3, [row(grain=10)] * 3)  # takes 20 (10 + 10), third is exhausted
+        out = world.act(world.bob, ["gather"], [row(grain=7)])
+        assert out == ["land_exhausted"]
+        assert world.get(world.bob)["grain"] == 4
+
+    def test_the_land_recovers_each_epoch(self, world):
+        world.join(world.alice)
+        world.act(world.alice, ["gather", "gather"], [row(grain=10)] * 2)
+        assert world.c.get_world()["commons_left"]["grain"] == 0
+        world.end_epoch()
+        assert world.c.get_world()["commons_left"]["grain"] == 10
+
+    def test_more_citizens_mean_more_land(self, world):
+        world.join(world.alice)
+        assert world.c.get_world()["commons_left"] == {"wood": 8, "stone": 6, "grain": 10}
+        world.join(world.bob)
+        assert world.c.get_world()["commons_left"] == {"wood": 16, "stone": 12, "grain": 20}
+
+    def test_the_jury_is_told_how_much_land_is_left(self, world):
+        world.join(world.alice)
+        world.act(world.alice, ["gather wood"], [row(wood=5)])
+        world.end_epoch()
+        world.act(world.alice, ["gather wood"], [row(wood=3)])
+        assert "COMMON LAND LEFT" in world.llm_prompts[-1] and '"wood": 8' in world.llm_prompts[-1]
+
+    def test_coin_and_other_losses_are_not_land(self, world):
+        world.join(world.alice)
+        out = world.act(world.alice, ["spend wood", "gather"], [row(wood=-5), row(wood=8)])
+        assert out == ["done", "done"] and world.c.get_world()["commons_left"]["wood"] == 0
+
+    @pytest.mark.parametrize("seed", range(40))
+    def test_total_taken_never_exceeds_the_stock(self, world, seed):
+        rnd = random.Random(seed)
+        m = module()
+        stock = {"wood": 8, "stone": 6, "grain": 10}
+        results = m.normalize_results({"results": [{"ok": True, **{r: rnd.randint(0, 10) for r in m.RESOURCES}} for _ in range(6)]}, 6)
+        new, outcomes, applied, left = m.apply_results({"wood": 10, "stone": 5, "grain": 4, "coin": 0}, results, stock)
+        for r in ("wood", "stone", "grain"):
+            taken = sum(a[r] for a in applied)
+            assert taken <= stock[r] and left[r] == stock[r] - taken and left[r] >= 0
+            assert new[r] == {"wood": 10, "stone": 5, "grain": 4}[r] + taken
+
+
 class TestSnapshot:
     def test_one_read_returns_the_world_the_citizens_and_the_recent_chronicle(self, world):
         world.join(world.alice, "Ada")
@@ -407,7 +464,7 @@ class TestPureRules:
         m = module()
         cur = {"wood": 10, "stone": 5, "grain": 10, "coin": 0}
         results = m.normalize_results({"results": [{"ok": rnd.random() < 0.8, **{r: rnd.randint(-50, 50) for r in m.RESOURCES}} for _ in range(6)]}, 6)
-        new, outcomes = m.apply_results(cur, results)
+        new, outcomes, applied, _ = m.apply_results(cur, results)
         assert all(v >= 0 for v in new.values())
         if all(o != "done" for o in outcomes):
             assert new == cur

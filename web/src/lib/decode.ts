@@ -20,6 +20,12 @@ function bundle(v: unknown): Partial<Record<Resource, number>> {
   return out;
 }
 
+function numMap(v: unknown): Record<string, number> {
+  const out: Record<string, number> = {};
+  if (v && typeof v === "object") for (const [k, x] of Object.entries(v as Raw)) out[k] = num(x);
+  return out;
+}
+
 export function toWorld(r: Raw): World {
   const c = (r.conditions ?? {}) as Raw;
   return {
@@ -35,6 +41,8 @@ export function toWorld(r: Raw): World {
     alive: num(r.alive),
     settled: Boolean(r.settled),
     conditions: { epoch: num(c.epoch), season: String(c.season), event: String(c.event) },
+    commonsLeft: numMap(r.commons_left),
+    commonsPerCitizen: numMap(r.commons_per_citizen),
   };
 }
 

@@ -20,6 +20,9 @@ export interface World {
   alive: number;
   settled: boolean;
   conditions: Conditions;
+  /** what is left of the shared common land this epoch, and the stock it holds per living citizen */
+  commonsLeft: Record<string, number>;
+  commonsPerCitizen: Record<string, number>;
 }
 
 export interface Citizen {

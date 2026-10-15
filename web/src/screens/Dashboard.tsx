@@ -8,6 +8,17 @@ import { AddressLink, Delta, Empty, Pill, TxStatus, countdown } from "../compone
 
 const REFRESH = 60000; // one snapshot read a minute: the RPC allows 500 requests an hour per client
 
+export function outcomeText(o: string | null): string {
+  switch (o) {
+    case "done": return "done";
+    case "refused": return "refused by the law";
+    case "land_exhausted": return "the common land was already taken";
+    case "overdraft": return "refused: not enough to pay for it";
+    case "too_much_gain": return "refused: more than the world allows";
+    default: return o ?? "";
+  }
+}
+
 function lawfulness(c: Citizen): number {
   const judged = c.actionsDone + c.refused;
   return judged === 0 ? 100 : Math.floor((100 * c.actionsDone) / judged);
@@ -39,6 +50,22 @@ function WorldBar({ w, now, reload }: { w: World; now: number; reload: () => voi
         <div className="stat"><span>Citizens alive</span><b>{w.alive} / {w.citizens}</b></div>
       </div>
       <div className="track" aria-label="Season progress"><i style={{ width: `${progress}%` }} /></div>
+      <div className="card" style={{ marginTop: 12 }}>
+        <h3>Common land this epoch</h3>
+        <p className="small muted">A limited stock shared by everyone. Whoever gathers first leaves less for the rest, and it recovers when the epoch ends.</p>
+        <div className="row">
+          {["wood", "stone", "grain"].map((r) => {
+            const cap = (w.commonsPerCitizen[r] ?? 0) * Math.max(1, w.alive);
+            const left = w.commonsLeft[r] ?? 0;
+            return (
+              <div className="grow" key={r}>
+                <div className="small"><b>{r}</b> {left} of {cap} left</div>
+                <div className="bar"><i style={{ width: `${cap ? (100 * left) / cap : 0}%`, background: left === 0 ? "var(--bad)" : "var(--amber)" }} /></div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
       <div className="row small" style={{ marginTop: 8 }}>
         {w.status === "RUNNING" && left <= 0 ? <button className="small" disabled={tx.busy || !signer} onClick={() => go("end_epoch")}>End the epoch</button> : null}
         {w.status === "ENDED" && !w.settled ? <button className="small" disabled={tx.busy || !signer} onClick={() => go("settle_season")}>Pay out the season</button> : null}
@@ -103,7 +130,7 @@ function Feed({ entries }: { entries: ChronicleEntry[] }) {
             {e.kind === "action" ? (
               <>
                 <span className="who">{e.who}</span> “{e.text}” →{" "}
-                <b style={{ color: e.outcome === "done" ? "var(--ok)" : "var(--bad)" }}>{e.outcome === "done" ? "done" : e.outcome === "refused" ? "refused by the law" : e.outcome}</b>
+                <b style={{ color: e.outcome === "done" ? "var(--ok)" : "var(--bad)" }}>{outcomeText(e.outcome)}</b>
                 <Delta delta={e.delta} />
               </>
             ) : (

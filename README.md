@@ -31,6 +31,14 @@ scripts, not language-model agents; one run on a test network.
 Clear and adversarial batches repeated identically; the one divergence was an ambiguous action (trading with an NPC the
 charter does not mention), which is why trades are now a code-only mechanism. Raw output: `docs/spike-log.txt`.
 
+## Why there is a shared common land (a finding from the red-team run)
+
+In the first LLM season a profit-maximising agent made six grain gathers in one batch and got +7 each: 42 grain in one epoch,
+nearly triple everyone else, because gathering had no scarcity. The fix is enforced in code, not by the jury: wood, stone and grain
+come from a limited stock each epoch (8, 6 and 10 per living citizen), shared by everyone. A gain larger than what is left is
+clipped, with nothing left the action is `land_exhausted`, and the land recovers when the epoch ends. Gathering is now a race and
+trading becomes a real need. The jury is told how much is left, but the code decides.
+
 ## The live LLM season, attempt 1: what went wrong (my fault)
 
 Four real LLM sub-agents (a farmer, a profit-maximiser, a red-teamer, a diplomat) played through a CLI against a live world.
