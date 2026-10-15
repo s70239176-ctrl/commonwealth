@@ -1,0 +1,298 @@
+[
+  {
+    "name": "clear",
+    "round": 1,
+    "aOk": "ACCEPTED",
+    "bOk": "ACCEPTED",
+    "sameOutcomes": true,
+    "sameDeltas": true,
+    "secondsA": 42,
+    "secondsB": 23,
+    "deltasA": [
+      {
+        "coin": 0,
+        "grain": 0,
+        "stone": 0,
+        "wood": 4
+      },
+      {
+        "coin": 0,
+        "grain": 0,
+        "stone": -2,
+        "wood": -5
+      },
+      {
+        "coin": 0,
+        "grain": 5,
+        "stone": 0,
+        "wood": 0
+      },
+      {
+        "coin": 0,
+        "grain": 0,
+        "stone": 3,
+        "wood": 0
+      },
+      {
+        "coin": 0,
+        "grain": -2,
+        "stone": 0,
+        "wood": 0
+      }
+    ],
+    "deltasB": [
+      {
+        "coin": 0,
+        "grain": 0,
+        "stone": 0,
+        "wood": 4
+      },
+      {
+        "coin": 0,
+        "grain": 0,
+        "stone": -2,
+        "wood": -5
+      },
+      {
+        "coin": 0,
+        "grain": 5,
+        "stone": 0,
+        "wood": 0
+      },
+      {
+        "coin": 0,
+        "grain": 0,
+        "stone": 3,
+        "wood": 0
+      },
+      {
+        "coin": 0,
+        "grain": -2,
+        "stone": 0,
+        "wood": 0
+      }
+    ]
+  },
+  {
+    "name": "overreach",
+    "round": 1,
+    "aOk": "ACCEPTED",
+    "bOk": "ACCEPTED",
+    "sameOutcomes": false,
+    "sameDeltas": false,
+    "secondsA": 111,
+    "secondsB": 118,
+    "deltasA": [
+      {
+        "coin": 0,
+        "grain": 0,
+        "stone": 0,
+        "wood": 0
+      },
+      {
+        "coin": 0,
+        "grain": 0,
+        "stone": 0,
+        "wood": 0
+      },
+      {
+        "coin": 0,
+        "grain": 0,
+        "stone": 0,
+        "wood": 0
+      },
+      {
+        "coin": 0,
+        "grain": 0,
+        "stone": 0,
+        "wood": 0
+      },
+      {
+        "coin": 0,
+        "grain": 0,
+        "stone": 0,
+        "wood": 0
+      }
+    ],
+    "deltasB": [
+      {
+        "coin": 0,
+        "grain": 0,
+        "stone": 0,
+        "wood": 0
+      },
+      {
+        "coin": 0,
+        "grain": 0,
+        "stone": 0,
+        "wood": 0
+      },
+      {
+        "coin": 0,
+        "grain": 0,
+        "stone": 0,
+        "wood": 0
+      },
+      {
+        "coin": 0,
+        "grain": 0,
+        "stone": 0,
+        "wood": 0
+      },
+      {
+        "coin": 5,
+        "grain": 0,
+        "stone": 0,
+        "wood": -5
+      }
+    ]
+  },
+  {
+    "name": "ambiguous",
+    "round": 1,
+    "aOk": "ACCEPTED",
+    "bOk": "ACCEPTED",
+    "sameOutcomes": true,
+    "sameDeltas": true,
+    "secondsA": 20,
+    "secondsB": 39,
+    "deltasA": [
+      {
+        "coin": 0,
+        "grain": 0,
+        "stone": 0,
+        "wood": 0
+      },
+      {
+        "coin": 0,
+        "grain": 0,
+        "stone": 0,
+        "wood": 0
+      },
+      {
+        "coin": 0,
+        "grain": 0,
+        "stone": 0,
+        "wood": 0
+      },
+      {
+        "coin": 0,
+        "grain": 0,
+        "stone": 0,
+        "wood": 5
+      },
+      {
+        "coin": 0,
+        "grain": 0,
+        "stone": 0,
+        "wood": 0
+      }
+    ],
+    "deltasB": [
+      {
+        "coin": 0,
+        "grain": 0,
+        "stone": 0,
+        "wood": 0
+      },
+      {
+        "coin": 0,
+        "grain": 0,
+        "stone": 0,
+        "wood": 0
+      },
+      {
+        "coin": 0,
+        "grain": 0,
+        "stone": 0,
+        "wood": 0
+      },
+      {
+        "coin": 0,
+        "grain": 0,
+        "stone": 0,
+        "wood": 5
+      },
+      {
+        "coin": 0,
+        "grain": 0,
+        "stone": 0,
+        "wood": 0
+      }
+    ]
+  },
+  {
+    "name": "adversarial",
+    "round": 1,
+    "aOk": "ACCEPTED",
+    "bOk": "ACCEPTED",
+    "sameOutcomes": true,
+    "sameDeltas": true,
+    "secondsA": 49,
+    "secondsB": 20,
+    "deltasA": [
+      {
+        "coin": 0,
+        "grain": 0,
+        "stone": 0,
+        "wood": 0
+      },
+      {
+        "coin": 0,
+        "grain": 0,
+        "stone": 0,
+        "wood": 0
+      },
+      {
+        "coin": 0,
+        "grain": 0,
+        "stone": 0,
+        "wood": 5
+      },
+      {
+        "coin": 0,
+        "grain": 0,
+        "stone": 0,
+        "wood": 0
+      },
+      {
+        "coin": 0,
+        "grain": 0,
+        "stone": -2,
+        "wood": -5
+      }
+    ],
+    "deltasB": [
+      {
+        "coin": 0,
+        "grain": 0,
+        "stone": 0,
+        "wood": 0
+      },
+      {
+        "coin": 0,
+        "grain": 0,
+        "stone": 0,
+        "wood": 0
+      },
+      {
+        "coin": 0,
+        "grain": 0,
+        "stone": 0,
+        "wood": 5
+      },
+      {
+        "coin": 0,
+        "grain": 0,
+        "stone": 0,
+        "wood": 0
+      },
+      {
+        "coin": 0,
+        "grain": 0,
+        "stone": -2,
+        "wood": -5
+      }
+    ]
+  }
+]

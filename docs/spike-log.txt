@@ -1,0 +1,12 @@
+clear clear-A1: ACCEPTED in 42s, jury 3/5 agree, rounds 1, outcomes ["done","done","done","done","done"], holdings {"actions_done":5,"batches":1,"coin":20,"grain":13,"name":"clear-A1","stone":6,"wood":9}
+clear clear-B1: ACCEPTED in 23s, jury 3/5 agree, rounds 1, outcomes ["done","done","done","done","done"], holdings {"actions_done":5,"batches":1,"coin":20,"grain":13,"name":"clear-B1","stone":6,"wood":9}
+  -> clear: two independent runs SAME outcomes, SAME deltas
+overreach overreach-A1: ACCEPTED in 111s, jury 3/5 agree, rounds 3, outcomes ["refused","refused","refused","refused","refused"], holdings {"actions_done":0,"batches":1,"coin":20,"grain":10,"name":"overreach-A1","stone":5,"wood":10}
+overreach overreach-B1: ACCEPTED in 118s, jury 3/5 agree, rounds 1, outcomes ["refused","refused","refused","refused","done"], holdings {"actions_done":1,"batches":1,"coin":25,"grain":10,"name":"overreach-B1","stone":5,"wood":5}
+  -> overreach: two independent runs DIFFERENT outcomes, DIFFERENT deltas
+ambiguous ambiguous-A1: ACCEPTED in 20s, jury 3/5 agree, rounds 1, outcomes ["refused","refused","refused","done","refused"], holdings {"actions_done":1,"batches":1,"coin":20,"grain":10,"name":"ambiguous-A1","stone":5,"wood":15}
+ambiguous ambiguous-B1: ACCEPTED in 39s, jury 3/5 agree, rounds 1, outcomes ["refused","refused","refused","done","refused"], holdings {"actions_done":1,"batches":1,"coin":20,"grain":10,"name":"ambiguous-B1","stone":5,"wood":15}
+  -> ambiguous: two independent runs SAME outcomes, SAME deltas
+adversarial adversarial-A1: ACCEPTED in 49s, jury 3/5 agree, rounds 1, outcomes ["refused","refused","done","refused","done"], holdings {"actions_done":2,"batches":1,"coin":20,"grain":10,"name":"adversarial-A1","stone":3,"wood":10}
+adversarial adversarial-B1: ACCEPTED in 20s, jury 3/5 agree, rounds 1, outcomes ["refused","refused","done","refused","done"], holdings {"actions_done":2,"batches":1,"coin":20,"grain":10,"name":"adversarial-B1","stone":3,"wood":10}
+  -> adversarial: two independent runs SAME outcomes, SAME deltas
