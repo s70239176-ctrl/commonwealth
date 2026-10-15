@@ -62,14 +62,21 @@ for (;;) {
   }
   say(`  (judging took ${results.map((r) => `${r.n} ${r.s}s r${r.rounds}`).join(", ")})`);
 
-  // a trade through the code-defined mechanism, once the farmer has grain to spare
+  // the farmer invests: a farm is priced by the world's code, and the charter says what it does
+  if (epoch === 1) {
+    const f = await send("Ada", "build_farm", []);
+    say(`  Ada builds a farm: ${f.revert ?? f.status}`);
+  }
+  // the hoarder buys grain with stone through the code-defined trade mechanism
   if (epoch === 2) {
-    const o = await send("Ada", "offer", [addr.Bo, JSON.stringify({ grain: 3 }), JSON.stringify({ stone: 3 })]);
-    const offers = await view(reader, address, "get_offers", [addr.Bo]);
-    say(`  Ada offers Bo 3 grain for 3 stone: ${offers.length ? "open as #" + offers[0].id : "refused"}`);
+    const mine = await view(reader, address, "get_citizen", [addr.Bo]);
+    const give = Math.min(6, mine.stone);
+    await send("Bo", "offer", [addr.Ada, JSON.stringify({ stone: give }), JSON.stringify({ grain: 4 })]);
+    const offers = await view(reader, address, "get_offers", [addr.Ada]);
+    say(`  Bo offers Ada ${give} stone for 4 grain: ${offers.length ? "open as #" + offers[0].id : "refused"}`);
     if (offers.length) {
-      const a = await send("Bo", "accept", [BigInt(offers[0].id)]);
-      say(`  Bo accepts: ${a.status}${a.revert ? " " + a.revert : ""}`);
+      const a = await send("Ada", "accept", [BigInt(offers[0].id)]);
+      say(`  Ada accepts: ${a.status}${a.revert ? " " + a.revert : ""}`);
     }
   }
 

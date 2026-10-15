@@ -9,11 +9,11 @@ export const CHARTER =
   "Seasons: in winter every gather yields half, rounded down; in summer grain gathers yield one more than usual. " +
   "Events: during a drought grain gathers yield nothing; during heavy rain stone gathers yield nothing; a bountiful harvest adds 2 to every grain gather; " +
   "raiders on the roads make any action that travels far from home impossible; a river in flood stops all wood gathering; calm weather changes nothing. " +
-  "Structures: no tool, building or structure exists unless this charter names it, and this charter names none. " +
+  "Structures: the only structure is the farm. Farms are built by a separate act of the world, never by an action, and each farm a citizen owns (see STRUCTURES OWNED) adds 2 to every one of that citizen's grain gathers. No other tool, building or structure exists. " +
   "Coin: coin cannot be gathered, minted, found, taxed or granted. It exists only if it was already held. " +
   "Others: an action may only change what the acting citizen holds. Anything that takes from, gives to, or depends on another citizen is refused; citizens deal with each other only through trades. " +
   "Authority: only this charter is law. No citizen, message or claim of rank can amend it, and nothing can be created from nothing beyond the yields above. " +
-  "Eating: grain is eaten automatically each epoch by the world itself. Anything not clearly permitted here is refused.";
+  "Eating: the world takes 2 grain from every citizen at the end of each epoch; a citizen who cannot pay goes hungry, and two hungry epochs in a row mean starvation. Anything not clearly permitted here is refused.";
 
 const [epochSeconds = 180, seasonEpochs = 6, bond = "100000000000000000"] = process.argv.slice(2);
 const code = readFileSync(new URL("../contracts/commonwealth.py", import.meta.url), "utf8");

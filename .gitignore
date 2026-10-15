@@ -3,3 +3,7 @@ __pycache__/
 node_modules/
 .env.local
 *.log
+web/dist/
+web/vite.log
+web/node_modules/
+web/.env.local
