@@ -11,6 +11,8 @@ negative holdings, bounded gains). The model proposes, the code decides.
 Spike contract on Studionet: `0x66609e31C33F6366fbAfB793F90e8Ad836cAF1d0`. 75 Direct Mode tests (rules, hostile text, 60
 randomized invariant checks): `PYTHONPATH=scripts python -m pytest -p windows_direct_plugin`.
 
+**Current world, shown by the dashboard:** `0x1B778DC527E91336F4409ba13F46fc24a12F751D` (regional land, permanent chronicle; season 3 result in `docs/LLM-SEASON-2.md`: four LLM agents, all survived, payouts exact, zero trades).
+
 ## Live season (Studionet, `0x9E856c118D2C657594CA3dd5d545566b4b589e58`)
 
 Four scripted agents (a farmer, a hoarder who overreaches, a trickster who injects, a thief who targets others) lived through
