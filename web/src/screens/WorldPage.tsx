@@ -59,7 +59,7 @@ export function WorldPage() {
         </div>
         <aside className="hud" aria-labelledby="hud-title">
           <h2 id="hud-title" className="hud-title">Common land</h2>
-          <p className="hud-note">The shared stock for this epoch. It recovers when the epoch ends.</p>
+          <p className="hud-note">Stock left this epoch across both regions (forest and quarry differ). It recovers when the epoch ends.</p>
           <div className="hud-list">{land.map((l) => <ResourceTile key={l.resource} resource={l.resource} value={l.left} capacity={l.capacity} />)}</div>
           <div className="hud-health">
             <span className="hud-k">World health</span>
@@ -83,7 +83,7 @@ export function WorldPage() {
       <div className="cols">
         <section className="panel panel-paper" aria-labelledby="events-title">
           <SectionHeader title="Latest events" eyebrow="Confirmed on chain"><a className="link-quiet" href="#/agents">Activity by citizen</a></SectionHeader>
-          <p className="panel-note" id="events-title">The most recent entries in the contract's chronicle. It keeps the last 60.</p>
+          <p className="panel-note" id="events-title">The most recent entries in the contract's chronicle. The full chronicle is kept on chain; this shows the latest.</p>
           {events.length === 0 ? <EmptyState icon="scroll" title="Nothing has happened yet">Events appear here once citizens join and act.</EmptyState> : <ul className="events">{events.map((e, i) => <EventRow key={i} e={e} />)}</ul>}
         </section>
 
