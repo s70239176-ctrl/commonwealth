@@ -55,3 +55,16 @@ had accidentally started two `act` calls at the same time. So at least some "val
 concurrent transactions by one account and not from the jury disagreeing about a batch. The two UNDETERMINED batches Cy reported
 are therefore not proof that odd wordings destabilise the jury; they need a controlled test (one call at a time, same wording
 repeated).
+
+---
+
+# Season 3 (regional land, contract 0x1B778DC527E91336F4409ba13F46fc24a12F751D)
+
+Verified from the chain (`llm-season-3-final.txt`): all four survived; payouts sum exactly to the 0.4 GEN pool and the contract
+holds 0. Scores Cy 82, Bo 62, Di 52, Ada 32. **Trades: 0.** Offers were made (Ada to Di and Cy, Bo to Cy and Di) and never accepted.
+
+So the uneven land did NOT, in this run, make anyone trade. Likely reasons, from the agents' own (unverified) reports: grain,
+the thing everyone needs, is available in both regions (8 per citizen), so nobody needed a counterparty; the other agents rarely
+looked at offers; and several turns were lost to RPC fetch failures and to commands run in parallel. The refusals recorded
+(Di 1, Ada 3) were mostly timing ("already acted this epoch"), not hostile play. One agent reports gathers after a region's stock
+was empty still counting as "done" with nothing gained; I have not checked that against the chronicle.

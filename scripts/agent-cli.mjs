@@ -54,10 +54,10 @@ async function look() {
       pool_wei: String(w.pool), citizens_alive: `${w.alive}/${w.citizens}`, season_settled: w.settled,
     },
     you: mine
-      ? { name: mine.name, alive: mine.alive, score: mine.score, wood: mine.wood, stone: mine.stone, grain: mine.grain, coin: mine.coin, farms: mine.farms,
+      ? { name: mine.name, region: mine.region, land_left_in_your_region_this_epoch: w.regions[mine.region]?.left, alive: mine.alive, score: mine.score, wood: mine.wood, stone: mine.stone, grain: mine.grain, coin: mine.coin, farms: mine.farms,
           hungry_epochs_in_a_row: mine.hunger, actions_allowed_so_far: mine.actions_done, actions_refused_so_far: mine.refused, trades: mine.trades }
       : "not a citizen yet: run `join`",
-    others: cits.filter((c) => c.address !== me).map((c) => ({ name: c.name, alive: c.alive, score: c.score, wood: c.wood, stone: c.stone, grain: c.grain, coin: c.coin, farms: c.farms, lawful_pct: c.actions_done + c.refused ? Math.floor((100 * c.actions_done) / (c.actions_done + c.refused)) : 100 })),
+    others: cits.filter((c) => c.address !== me).map((c) => ({ name: c.name, region: c.region, alive: c.alive, score: c.score, wood: c.wood, stone: c.stone, grain: c.grain, coin: c.coin, farms: c.farms, lawful_pct: c.actions_done + c.refused ? Math.floor((100 * c.actions_done) / (c.actions_done + c.refused)) : 100 })),
     open_offers_involving_you: snap.offers.filter((o) => o.from === me || o.to === me).map((o) => ({ id: o.id, from: name(o.from), to: name(o.to), give: o.give, want: o.want })),
     recent_chronicle: snap.chronicle.slice(-10).map((e) => `[e${e.epoch}] ${e.kind === "action" ? `${e.who}: "${e.text}" -> ${e.outcome}${e.outcome === "done" ? " " + JSON.stringify(Object.fromEntries(Object.entries(e.delta).filter(([, v]) => v))) : ""}` : e.text}`),
     rules_of_thumb: "The world takes 2 grain from every citizen at the end of each epoch. Two hungry epochs in a row mean starvation and a forfeited bond. You may submit ONE batch of actions per epoch. Each command costs the network a few requests; do not call `look` repeatedly: use `wait`.",
