@@ -5,13 +5,14 @@ import type { ChronicleEntry, Citizen, World } from "./types.ts";
 import { lifecycleView } from "./lifecycle.ts";
 
 const cit = (o: Partial<Citizen>): Citizen => ({
-  address: "0xabc", name: "Ada", alive: true, score: 0, wood: 0, stone: 0, grain: 0, coin: 0, farms: 0, bond: 0n, hunger: 0, joinedEpoch: 1,
+  address: "0xabc", name: "Ada", alive: true, score: 0, wood: 0, stone: 0, grain: 0, coin: 0, farms: 0, region: "forest", bond: 0n, hunger: 0, joinedEpoch: 1,
   diedEpoch: 0, epochsSurvived: 0, batches: 0, actionsDone: 0, refused: 0, trades: 0, payout: 0n, lawfulnessPct: null, ...o,
 });
 const act = (epoch: number, who: string, outcome: string): ChronicleEntry => ({ epoch, kind: "action", who, text: "x", outcome, delta: null });
 const world = (o: Partial<World>): World => ({
   charter: "c", status: "RUNNING", epoch: 2, seasonEpochs: 6, epochSeconds: 100, nextEpochAt: 0, bond: 1n, pool: 4n, citizens: 4, alive: 4, settled: false,
-  conditions: { epoch: 2, season: "summer", event: "drought" }, commonsLeft: { wood: 8, stone: 6, grain: 0 }, commonsPerCitizen: { wood: 8, stone: 6, grain: 10 }, ...o,
+  conditions: { epoch: 2, season: "summer", event: "drought" }, commonsLeft: { wood: 8, stone: 6, grain: 0 }, commonsCapacity: { wood: 24, stone: 18, grain: 30 },
+  regions: {}, regionLand: {}, chronicleSize: 0, flaggedSize: 0, ...o,
 });
 
 test("lawfulness is the share of judged actions allowed, and 100 before anything is judged", () => {
@@ -32,7 +33,7 @@ test("citizen totals sum holdings and actions; trades count once per pair", () =
 test("common land uses the contract's own capacity: per citizen times those alive", () => {
   const land = commonLand(world({ alive: 3 }));
   assert.deepEqual(land.map((l) => [l.resource, l.left, l.capacity]), [["wood", 8, 24], ["stone", 6, 18], ["grain", 0, 30]]);
-  assert.equal(commonLand(world({ alive: 0 }))[0].capacity, 8);
+  assert.equal(commonLand(world({ alive: 0, commonsCapacity: {} }))[0].capacity, 0);
 });
 
 test("outcomes and per-epoch buckets only count actions", () => {

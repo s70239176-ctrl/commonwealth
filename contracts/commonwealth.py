@@ -39,8 +39,16 @@ STARVE_AFTER = 2  # consecutive epochs unable to eat
 FARM_COST = {"wood": 5, "stone": 3}  # priced in CODE: the model never decides what a structure costs
 MAX_FARMS = 2
 FARM_SCORE = 6
-COMMONS_PER_CITIZEN = {"wood": 8, "stone": 6, "grain": 10}  # the common land: a LIMITED stock each epoch, shared by all
-CHRONICLE_KEEP = 60
+LAND_RESOURCES = ("wood", "stone", "grain")
+REGIONS = ("forest", "quarry")  # assigned by join order, alternating: the land is NOT the same everywhere
+# The common land of a region: a LIMITED stock each epoch PER CITIZEN living there, shared only by that region's citizens.
+# A forest citizen can fell plenty of wood but find almost no stone; a quarry citizen the reverse. Trading pays.
+REGION_LAND = {
+    "forest": {"wood": 12, "stone": 2, "grain": 8},
+    "quarry": {"wood": 2, "stone": 10, "grain": 8},
+}
+SNAPSHOT_MAX = 60  # most chronicle entries one snapshot read returns (the chronicle itself is unbounded)
+PAGE_MAX = 100
 SEASONS = ("spring", "summer", "autumn", "winter")
 EVENTS = ("calm weather", "drought", "heavy rain", "bountiful harvest", "raiders on the roads", "river in flood")
 
@@ -133,7 +141,7 @@ def apply_results(holdings: dict, results: list, commons_left=None):
         take = {r: row[r] for r in RESOURCES}
         if left is not None:
             exhausted = False
-            for r in COMMONS_PER_CITIZEN:
+            for r in LAND_RESOURCES:
                 if take[r] > 0:
                     if left[r] <= 0:
                         exhausted = True
@@ -150,7 +158,7 @@ def apply_results(holdings: dict, results: list, commons_left=None):
             continue
         cur = nxt
         if left is not None:
-            for r in COMMONS_PER_CITIZEN:
+            for r in LAND_RESOURCES:
                 if take[r] > 0:
                     left[r] -= take[r]
         outcomes.append("done")
@@ -199,7 +207,7 @@ def _defang(text: str) -> str:
     return text.replace("<<<", "< < <").replace(">>>", "> > >")
 
 
-def _prompt(charter: str, conditions: dict, holdings: dict, structures: dict, commons_left: dict, actions: list) -> str:
+def _prompt(charter: str, conditions: dict, holdings: dict, structures: dict, region: str, commons_left: dict, actions: list) -> str:
     lines = [str(i + 1) + ". " + a for i, a in enumerate(actions)]
     return (
         "COMMONWEALTH_JUDGE\n"
@@ -215,7 +223,8 @@ def _prompt(charter: str, conditions: dict, holdings: dict, structures: dict, co
         "CONDITIONS: " + json.dumps(conditions, sort_keys=True) + "\n"
         "HOLDINGS: " + json.dumps(holdings, sort_keys=True) + "\n"
         "STRUCTURES OWNED: " + json.dumps(structures, sort_keys=True) + "\n"
-        "COMMON LAND LEFT THIS EPOCH (shared by all citizens; the world clips any gain beyond it): "
+        "REGION OF THIS CITIZEN: " + region + " (a citizen gathers only from the land of their own region)\n"
+        "COMMON LAND LEFT THIS EPOCH IN THIS REGION (shared by its citizens; the world clips any gain beyond it): "
         + json.dumps(commons_left, sort_keys=True) + "\n"
         "ACTIONS:\n<<<ACTIONS\n" + "\n".join(_defang(l) for l in lines) + "\n>>>\n"
         'Answer JSON only: {"results": [{"ok": true|false, "wood": 0, "stone": 0, "grain": 0, "coin": 0}, ...]} '
@@ -223,10 +232,10 @@ def _prompt(charter: str, conditions: dict, holdings: dict, structures: dict, co
     )
 
 
-def _judge(charter: str, conditions: dict, holdings: dict, structures: dict, commons_left: dict, actions: list):
+def _judge(charter: str, conditions: dict, holdings: dict, structures: dict, region: str, commons_left: dict, actions: list):
     """One independent observation, re-run by the leader AND every validator. Normalized results or None."""
     try:
-        raw = gl.nondet.exec_prompt(_prompt(charter, conditions, holdings, structures, commons_left, actions), response_format="json")
+        raw = gl.nondet.exec_prompt(_prompt(charter, conditions, holdings, structures, region, commons_left, actions), response_format="json")
     except Exception:
         return None
     return normalize_results(_parse_json(raw), len(actions))
@@ -253,6 +262,7 @@ class Citizen:
     trades: u256
     payout: u256
     farms: u256
+    region: str
 
 
 @allow_storage
@@ -271,7 +281,10 @@ class Commonwealth(gl.Contract):
     citizens: TreeMap[str, Citizen]
     offers: TreeMap[u256, Offer]
     keys_json: str
-    chronicle_json: str
+    log: TreeMap[u256, str]  # the chronicle: append-only, unbounded, one JSON entry per slot
+    log_count: u256
+    flagged: TreeMap[u256, str]  # every action that was NOT simply allowed (refused, overdraft, exhausted...): the permanent rap sheet
+    flagged_count: u256
     epoch: u256
     epoch_seconds: u256
     season_epochs: u256
@@ -297,7 +310,8 @@ class Commonwealth(gl.Contract):
         self.season_epochs = season_epochs
         self.bond = bond
         self.keys_json = "[]"
-        self.chronicle_json = "[]"
+        self.log_count = u256(0)
+        self.flagged_count = u256(0)
         self.epoch = u256(1)
         self.started_at = u256(_parse_time(gl.message_raw["datetime"]))
         self.pool = u256(0)
@@ -326,19 +340,39 @@ class Commonwealth(gl.Contract):
         return {"ok": False, "reason": reason}
 
     def _log(self, kind: str, who: str, text: str, extra=None) -> None:
-        log = json.loads(self.chronicle_json)
+        """Append to the chronicle (O(1): one slot, never rewriting history). Non-allowed actions are also filed in `flagged`."""
         entry = {"epoch": int(self.epoch), "kind": kind, "who": who, "text": text[:160]}
         if extra:
             entry.update(extra)
-        log.append(entry)
-        self.chronicle_json = json.dumps(log[-CHRONICLE_KEEP:])
+        blob = json.dumps(entry)
+        self.log[self.log_count] = blob
+        self.log_count = u256(int(self.log_count) + 1)
+        if kind == "action" and entry.get("outcome") != "done":
+            self.flagged[self.flagged_count] = blob
+            self.flagged_count = u256(int(self.flagged_count) + 1)
 
-    def _commons_left(self) -> dict:
-        """The common land still available this epoch: a fixed stock per living citizen, minus what was already taken."""
-        keys = json.loads(self.keys_json)
-        alive = max(1, len([k for k in keys if self.citizens[k].alive]))
+    def _page(self, store, count: int, start: int, limit: int) -> list:
+        lo = max(0, min(int(start), count))
+        hi = min(count, lo + max(0, min(int(limit), PAGE_MAX)))
+        return [json.loads(store[u256(i)]) for i in range(lo, hi)]
+
+    def _region_stats(self) -> dict:
+        """Per region: living citizens, stock left this epoch, and full capacity. Land exists only where citizens live."""
         used = json.loads(self.commons_used_json)
-        return {r: max(0, COMMONS_PER_CITIZEN[r] * alive - int(used.get(r, 0))) for r in COMMONS_PER_CITIZEN}
+        alive = {g: 0 for g in REGIONS}
+        for k in json.loads(self.keys_json):
+            c = self.citizens[k]
+            if c.alive:
+                alive[c.region] += 1
+        out = {}
+        for g in REGIONS:
+            cap = {r: REGION_LAND[g][r] * alive[g] for r in LAND_RESOURCES}
+            spent = used.get(g, {})
+            out[g] = {"citizens": alive[g], "capacity": cap, "left": {r: max(0, cap[r] - int(spent.get(r, 0))) for r in LAND_RESOURCES}}
+        return out
+
+    def _commons_left(self, region: str) -> dict:
+        return self._region_stats()[region]["left"]
 
     def _holdings(self, c: Citizen) -> dict:
         return {"wood": int(c.wood), "stone": int(c.stone), "grain": int(c.grain), "coin": int(c.coin)}
@@ -366,6 +400,7 @@ class Commonwealth(gl.Contract):
             "score": self._score(c),
             **self._holdings(c),
             "farms": int(c.farms),
+            "region": c.region,
             "bond": int(c.bond),
             "hunger": int(c.hunger),
             "joined_epoch": int(c.joined_epoch),
@@ -401,7 +436,7 @@ class Commonwealth(gl.Contract):
             name=name.strip(), wood=u256(START["wood"]), stone=u256(START["stone"]), grain=u256(START["grain"]),
             coin=u256(START["coin"]), bond=u256(value), alive=True, hunger=u256(0), last_act_epoch=u256(0),
             joined_epoch=self.epoch, died_epoch=u256(0), batches=u256(0), actions_done=u256(0), refused=u256(0),
-            trades=u256(0), payout=u256(0), farms=u256(0),
+            trades=u256(0), payout=u256(0), farms=u256(0), region=REGIONS[len(keys) % len(REGIONS)],
         )
         keys.append(key)
         self.keys_json = json.dumps(keys)
@@ -429,12 +464,13 @@ class Commonwealth(gl.Contract):
             clean.append(a.strip())
         holdings = self._holdings(c)
         structures = {"farms": int(c.farms)}
-        commons_left = self._commons_left()
+        region = c.region
+        commons_left = self._commons_left(region)
         charter = str(self.charter)
         conditions = conditions_for(int(self.epoch), int(self.season_epochs))
 
         def leader_fn():
-            mine = _judge(charter, conditions, holdings, structures, commons_left, clean)
+            mine = _judge(charter, conditions, holdings, structures, region, commons_left, clean)
             return mine if mine is not None else {"invalid": True}
 
         def validator_fn(leader_res) -> bool:
@@ -445,7 +481,7 @@ class Commonwealth(gl.Contract):
             lead = normalize_results({"results": leader_res.calldata}, len(clean))
             if lead is None or lead != leader_res.calldata:
                 return False
-            mine = _judge(charter, conditions, holdings, structures, commons_left, clean)
+            mine = _judge(charter, conditions, holdings, structures, region, commons_left, clean)
             return mine is not None and lead == mine  # every ok flag and every number, never prose
 
         env = gl.vm.run_nondet_unsafe(leader_fn, validator_fn)
@@ -455,8 +491,10 @@ class Commonwealth(gl.Contract):
 
         new_holdings, outcomes, applied, left_after = apply_results(holdings, results, commons_left)
         used = json.loads(self.commons_used_json)
-        for r in COMMONS_PER_CITIZEN:
-            used[r] = int(used.get(r, 0)) + (commons_left[r] - left_after[r])
+        spent = used.get(region, {})
+        for r in LAND_RESOURCES:
+            spent[r] = int(spent.get(r, 0)) + (commons_left[r] - left_after[r])
+        used[region] = spent
         self.commons_used_json = json.dumps(used)
         self._set(c, new_holdings)
         c.last_act_epoch = self.epoch
@@ -624,6 +662,7 @@ class Commonwealth(gl.Contract):
     # --------------------------------------------------------------- views
     def _world_view(self) -> dict:
         keys = json.loads(self.keys_json)
+        regions = self._region_stats()
         return {
             "charter": self.charter,
             "status": self.status,
@@ -637,8 +676,12 @@ class Commonwealth(gl.Contract):
             "alive": len([k for k in keys if self.citizens[k].alive]),
             "settled": self.settled,
             "conditions": conditions_for(min(int(self.epoch), int(self.season_epochs)), int(self.season_epochs)),
-            "commons_left": self._commons_left(),
-            "commons_per_citizen": COMMONS_PER_CITIZEN,
+            "commons_left": {r: sum(v["left"][r] for v in regions.values()) for r in LAND_RESOURCES},
+            "commons_capacity": {r: sum(v["capacity"][r] for v in regions.values()) for r in LAND_RESOURCES},
+            "regions": regions,
+            "region_land": REGION_LAND,
+            "chronicle_size": int(self.log_count),
+            "flagged_size": int(self.flagged_count),
         }
 
     @gl.public.view
@@ -648,12 +691,12 @@ class Commonwealth(gl.Contract):
     @gl.public.view
     def get_snapshot(self, chronicle_items: u256) -> dict:
         """EVERYTHING a dashboard or agent needs in ONE read: the RPC allows only 500 requests an hour per client."""
-        n = max(0, min(int(chronicle_items), CHRONICLE_KEEP))
-        log = json.loads(self.chronicle_json)
+        total = int(self.log_count)
+        n = max(0, min(int(chronicle_items), SNAPSHOT_MAX, total))
         return {
             "world": self._world_view(),
             "citizens": [self._view(k, self.citizens[k]) for k in json.loads(self.keys_json)],
-            "chronicle": log[-n:] if n else [],
+            "chronicle": self._page(self.log, total, total - n, n) if n else [],
             "offers": self._open_offers(None),
         }
 
@@ -667,8 +710,21 @@ class Commonwealth(gl.Contract):
         return [self._view(k, self.citizens[k]) for k in json.loads(self.keys_json)]
 
     @gl.public.view
-    def get_chronicle(self) -> list:
-        return json.loads(self.chronicle_json)
+    def get_chronicle(self, start: u256, limit: u256) -> list:
+        """A page of the permanent chronicle, oldest first: entries [start, start+limit), at most PAGE_MAX."""
+        return self._page(self.log, int(self.log_count), int(start), int(limit))
+
+    @gl.public.view
+    def get_recent(self, n: u256) -> list:
+        """The latest n chronicle entries (at most PAGE_MAX)."""
+        total = int(self.log_count)
+        k = max(0, min(int(n), PAGE_MAX, total))
+        return self._page(self.log, total, total - k, k)
+
+    @gl.public.view
+    def get_flagged(self, start: u256, limit: u256) -> list:
+        """A page of every action that was not simply allowed (refused, overdraft, land_exhausted...), oldest first. Never pruned."""
+        return self._page(self.flagged, int(self.flagged_count), int(start), int(limit))
 
     def _open_offers(self, key):
         """Open offers, newest last; all of them, or only those involving `key`."""

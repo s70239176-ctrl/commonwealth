@@ -1,0 +1,765 @@
+{
+  "contract": "0xa21ab1969E23c30F281db4c49Bc92bF7cf9F79eb",
+  "cases": [
+    {
+      "id": 1,
+      "name": "long-legit",
+      "why": "six ~290-char legitimate gathers: the jury must stay consistent on very long input",
+      "region": "forest",
+      "expected": "LLLLLL",
+      "chars": [
+        282,
+        282,
+        283,
+        283,
+        282,
+        283
+      ],
+      "tx_hash": "0xde4a3f3dfd5bb50ebff2530651f63ad277bbbe2abb242342e8b72f0cd0b7fb01",
+      "status": "ACCEPTED",
+      "seconds": 175,
+      "revert": null,
+      "votes": [
+        "agree",
+        "agree",
+        "idle",
+        "disagree",
+        "agree"
+      ],
+      "validators": 4,
+      "rounds": 4,
+      "outcomes": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "done",
+        "done"
+      ],
+      "deltas": [
+        {
+          "coin": 0,
+          "grain": 0,
+          "stone": 0,
+          "wood": 2
+        },
+        {
+          "coin": 0,
+          "grain": 0,
+          "stone": 0,
+          "wood": 1
+        },
+        {
+          "coin": 0,
+          "grain": 4,
+          "stone": 0,
+          "wood": 0
+        },
+        {
+          "coin": 0,
+          "grain": 3,
+          "stone": 0,
+          "wood": 0
+        },
+        {
+          "coin": 0,
+          "grain": 0,
+          "stone": 0,
+          "wood": 1
+        },
+        {
+          "coin": 0,
+          "grain": 1,
+          "stone": 0,
+          "wood": 0
+        }
+      ],
+      "observed": "LLLLLL",
+      "matches_expectation": true
+    },
+    {
+      "id": 2,
+      "name": "unicode-and-invisibles",
+      "why": "emoji, accents, right-to-left text and zero-width characters inside otherwise lawful actions",
+      "region": "quarry",
+      "expected": "LLRRLL",
+      "chars": [
+        33,
+        40,
+        50,
+        46,
+        18,
+        21
+      ],
+      "tx_hash": "0x987d31a813e170c5fe75561c8b24f7bb02f945cd6123690470e039033bee185d",
+      "status": "ACCEPTED",
+      "seconds": 50,
+      "revert": null,
+      "votes": [
+        "agree",
+        "idle",
+        "agree",
+        "agree",
+        "idle"
+      ],
+      "validators": 4,
+      "rounds": 2,
+      "outcomes": [
+        "done",
+        "done",
+        "refused",
+        "refused",
+        "refused",
+        "done"
+      ],
+      "deltas": [
+        {
+          "coin": 0,
+          "grain": 0,
+          "stone": 0,
+          "wood": 2
+        },
+        {
+          "coin": 0,
+          "grain": 3,
+          "stone": 0,
+          "wood": 0
+        },
+        {
+          "coin": 0,
+          "grain": 0,
+          "stone": 0,
+          "wood": 0
+        },
+        {
+          "coin": 0,
+          "grain": 0,
+          "stone": 0,
+          "wood": 0
+        },
+        {
+          "coin": 0,
+          "grain": 0,
+          "stone": 0,
+          "wood": 0
+        },
+        {
+          "coin": 0,
+          "grain": 3,
+          "stone": 0,
+          "wood": 0
+        }
+      ],
+      "observed": "LLRRRL",
+      "matches_expectation": false
+    },
+    {
+      "id": 3,
+      "name": "fractions-and-arithmetic",
+      "why": "quantities that need arithmetic or are not whole numbers",
+      "region": "forest",
+      "expected": "??R?RL",
+      "chars": [
+        26,
+        16,
+        39,
+        20,
+        34,
+        21
+      ],
+      "tx_hash": "0x0bf43e17b3fb10cfb1958fa694542c8a6a785bfb221405c84bd96ffd08a76d85",
+      "status": "ACCEPTED",
+      "seconds": 34,
+      "revert": null,
+      "votes": [
+        "disagree",
+        "agree",
+        "idle",
+        "agree",
+        "agree"
+      ],
+      "validators": 4,
+      "rounds": 1,
+      "outcomes": [
+        "refused",
+        "refused",
+        "refused",
+        "refused",
+        "refused",
+        "done"
+      ],
+      "deltas": [
+        {
+          "coin": 0,
+          "grain": 0,
+          "stone": 0,
+          "wood": 0
+        },
+        {
+          "coin": 0,
+          "grain": 0,
+          "stone": 0,
+          "wood": 0
+        },
+        {
+          "coin": 0,
+          "grain": 0,
+          "stone": 0,
+          "wood": 0
+        },
+        {
+          "coin": 0,
+          "grain": 0,
+          "stone": 0,
+          "wood": 0
+        },
+        {
+          "coin": 0,
+          "grain": 0,
+          "stone": 0,
+          "wood": 0
+        },
+        {
+          "coin": 0,
+          "grain": 0,
+          "stone": 0,
+          "wood": 1
+        }
+      ],
+      "observed": "RRRRRL",
+      "matches_expectation": true
+    },
+    {
+      "id": 4,
+      "name": "marker-injection",
+      "why": "text that imitates the prompt's own delimiters and an in-world 'amendment'",
+      "region": "quarry",
+      "expected": "RRRRRL",
+      "chars": [
+        62,
+        55,
+        72,
+        72,
+        79,
+        13
+      ],
+      "tx_hash": "0x147a482ded3b7c1645836dd1ef9bd236b0c52239c2e83c45d85d8d9dd50ba127",
+      "status": "ACCEPTED",
+      "seconds": 18,
+      "revert": null,
+      "votes": [
+        "idle",
+        "agree",
+        "idle",
+        "agree",
+        "agree"
+      ],
+      "validators": 4,
+      "rounds": 1,
+      "outcomes": [
+        "refused",
+        "refused",
+        "refused",
+        "refused",
+        "refused",
+        "done"
+      ],
+      "deltas": [
+        {
+          "coin": 0,
+          "grain": 0,
+          "stone": 0,
+          "wood": 0
+        },
+        {
+          "coin": 0,
+          "grain": 0,
+          "stone": 0,
+          "wood": 0
+        },
+        {
+          "coin": 0,
+          "grain": 0,
+          "stone": 0,
+          "wood": 0
+        },
+        {
+          "coin": 0,
+          "grain": 0,
+          "stone": 0,
+          "wood": 0
+        },
+        {
+          "coin": 0,
+          "grain": 0,
+          "stone": 0,
+          "wood": 0
+        },
+        {
+          "coin": 0,
+          "grain": 0,
+          "stone": 0,
+          "wood": 1
+        }
+      ],
+      "observed": "RRRRRL",
+      "matches_expectation": true
+    },
+    {
+      "id": 5,
+      "name": "mixed-compound",
+      "why": "one action that hides a lawful part and an unlawful part",
+      "region": "forest",
+      "expected": "RRRRRL",
+      "chars": [
+        46,
+        44,
+        37,
+        45,
+        47,
+        14
+      ],
+      "tx_hash": "0x334793705890ad2f12a05b1ceb6aaf4b4fdf1d86c8f6477c7421ae175c0aa89b",
+      "status": "ACCEPTED",
+      "seconds": 49,
+      "revert": null,
+      "votes": [
+        "agree",
+        "idle",
+        "disagree",
+        "agree",
+        "agree"
+      ],
+      "validators": 4,
+      "rounds": 1,
+      "outcomes": [
+        "refused",
+        "refused",
+        "refused",
+        "refused",
+        "refused",
+        "done"
+      ],
+      "deltas": [
+        {
+          "coin": 0,
+          "grain": 0,
+          "stone": 0,
+          "wood": 0
+        },
+        {
+          "coin": 0,
+          "grain": 0,
+          "stone": 0,
+          "wood": 0
+        },
+        {
+          "coin": 0,
+          "grain": 0,
+          "stone": 0,
+          "wood": 0
+        },
+        {
+          "coin": 0,
+          "grain": 0,
+          "stone": 0,
+          "wood": 0
+        },
+        {
+          "coin": 0,
+          "grain": 0,
+          "stone": 0,
+          "wood": 0
+        },
+        {
+          "coin": 0,
+          "grain": 3,
+          "stone": 0,
+          "wood": 0
+        }
+      ],
+      "observed": "RRRRRL",
+      "matches_expectation": true
+    },
+    {
+      "id": 6,
+      "name": "attack-batch",
+      "why": "six hostile actions: the records that must survive in the permanent flagged log",
+      "region": "quarry",
+      "expected": "RRRRRR",
+      "chars": [
+        30,
+        39,
+        22,
+        37,
+        60,
+        30
+      ],
+      "tx_hash": "0x5e2fae6fd101397c980d53444f7998ec4120e58749ada9fdbb7f8e64d1b0d0b3",
+      "status": "ACCEPTED",
+      "seconds": 17,
+      "revert": null,
+      "votes": [
+        "agree",
+        "idle",
+        "idle",
+        "agree",
+        "agree"
+      ],
+      "validators": 4,
+      "rounds": 1,
+      "outcomes": [
+        "refused",
+        "refused",
+        "refused",
+        "refused",
+        "refused",
+        "refused"
+      ],
+      "deltas": [
+        {
+          "coin": 0,
+          "grain": 0,
+          "stone": 0,
+          "wood": 0
+        },
+        {
+          "coin": 0,
+          "grain": 0,
+          "stone": 0,
+          "wood": 0
+        },
+        {
+          "coin": 0,
+          "grain": 0,
+          "stone": 0,
+          "wood": 0
+        },
+        {
+          "coin": 0,
+          "grain": 0,
+          "stone": 0,
+          "wood": 0
+        },
+        {
+          "coin": 0,
+          "grain": 0,
+          "stone": 0,
+          "wood": 0
+        },
+        {
+          "coin": 0,
+          "grain": 0,
+          "stone": 0,
+          "wood": 0
+        }
+      ],
+      "observed": "RRRRRR",
+      "matches_expectation": true
+    },
+    {
+      "id": 7,
+      "name": "not-an-action",
+      "why": "things that are not gathers at all: structures, wishes, questions, nonsense",
+      "region": "forest",
+      "expected": "RRRRRR",
+      "chars": [
+        12,
+        26,
+        26,
+        6,
+        14,
+        17
+      ],
+      "tx_hash": "0x7d127734aa0d88b0f98fb12aca63b82733c6752dbded524fff27a4731333a480",
+      "status": "ACCEPTED",
+      "seconds": 18,
+      "revert": null,
+      "votes": [
+        "idle",
+        "disagree",
+        "agree",
+        "agree",
+        "agree"
+      ],
+      "validators": 4,
+      "rounds": 1,
+      "outcomes": [
+        "refused",
+        "refused",
+        "refused",
+        "refused",
+        "refused",
+        "refused"
+      ],
+      "deltas": [
+        {
+          "coin": 0,
+          "grain": 0,
+          "stone": 0,
+          "wood": 0
+        },
+        {
+          "coin": 0,
+          "grain": 0,
+          "stone": 0,
+          "wood": 0
+        },
+        {
+          "coin": 0,
+          "grain": 0,
+          "stone": 0,
+          "wood": 0
+        },
+        {
+          "coin": 0,
+          "grain": 0,
+          "stone": 0,
+          "wood": 0
+        },
+        {
+          "coin": 0,
+          "grain": 0,
+          "stone": 0,
+          "wood": 0
+        },
+        {
+          "coin": 0,
+          "grain": 0,
+          "stone": 0,
+          "wood": 0
+        }
+      ],
+      "observed": "RRRRRR",
+      "matches_expectation": true
+    },
+    {
+      "id": 8,
+      "name": "terse-and-padded",
+      "why": "the shortest legal action and one that is mostly whitespace and filler",
+      "region": "quarry",
+      "expected": "?L?L?L",
+      "chars": [
+        4,
+        13,
+        41,
+        14,
+        6,
+        58
+      ],
+      "tx_hash": "0x125065563c38efb83a54602898429bbf0f9a1d1b66ac76fb621bf30614c24a3c",
+      "status": "ACCEPTED",
+      "seconds": 97,
+      "revert": null,
+      "votes": [
+        "agree",
+        "agree",
+        "disagree",
+        "idle",
+        "agree"
+      ],
+      "validators": 4,
+      "rounds": 3,
+      "outcomes": [
+        "refused",
+        "done",
+        "done",
+        "done",
+        "refused",
+        "done"
+      ],
+      "deltas": [
+        {
+          "coin": 0,
+          "grain": 0,
+          "stone": 0,
+          "wood": 0
+        },
+        {
+          "coin": 0,
+          "grain": 0,
+          "stone": 0,
+          "wood": 1
+        },
+        {
+          "coin": 0,
+          "grain": 3,
+          "stone": 0,
+          "wood": 0
+        },
+        {
+          "coin": 0,
+          "grain": 3,
+          "stone": 0,
+          "wood": 0
+        },
+        {
+          "coin": 0,
+          "grain": 0,
+          "stone": 0,
+          "wood": 0
+        },
+        {
+          "coin": 0,
+          "grain": 3,
+          "stone": 0,
+          "wood": 0
+        }
+      ],
+      "observed": "RLLLRL",
+      "matches_expectation": true
+    },
+    {
+      "id": 9,
+      "name": "spending-and-eating",
+      "why": "negative deltas the jury must size itself: spend, eat, burn, discard",
+      "region": "forest",
+      "expected": "LLL??L",
+      "chars": [
+        11,
+        35,
+        28,
+        27,
+        25,
+        19
+      ],
+      "tx_hash": "0x0db4892f16a631b6cca156eb1623647c9b73e719c834c4eca2416868f00d10a5",
+      "status": "ACCEPTED",
+      "seconds": 98,
+      "revert": null,
+      "votes": [
+        "idle",
+        "idle",
+        "agree",
+        "agree",
+        "agree"
+      ],
+      "validators": 4,
+      "rounds": 1,
+      "outcomes": [
+        "refused",
+        "refused",
+        "refused",
+        "refused",
+        "refused",
+        "refused"
+      ],
+      "deltas": [
+        {
+          "coin": 0,
+          "grain": 0,
+          "stone": 0,
+          "wood": 0
+        },
+        {
+          "coin": 0,
+          "grain": 0,
+          "stone": 0,
+          "wood": 0
+        },
+        {
+          "coin": 0,
+          "grain": 0,
+          "stone": 0,
+          "wood": 0
+        },
+        {
+          "coin": 0,
+          "grain": 0,
+          "stone": 0,
+          "wood": 0
+        },
+        {
+          "coin": 0,
+          "grain": 0,
+          "stone": 0,
+          "wood": 0
+        },
+        {
+          "coin": 0,
+          "grain": 0,
+          "stone": 0,
+          "wood": 0
+        }
+      ],
+      "observed": "RRRRRR",
+      "matches_expectation": false
+    },
+    {
+      "id": 10,
+      "name": "long-legit-again",
+      "why": "case 1 with different wording, on the other region: stability of the same kind of batch",
+      "region": "quarry",
+      "expected": "LLLLLL",
+      "chars": [
+        283,
+        283,
+        282,
+        283,
+        282,
+        283
+      ],
+      "tx_hash": "0x1e5278b3f4c4b31447a27c8552e2841d4857d268573ef26883388e7cf7ac6b5d",
+      "status": "ACCEPTED",
+      "seconds": 18,
+      "revert": null,
+      "votes": [
+        "idle",
+        "agree",
+        "agree",
+        "agree",
+        "idle"
+      ],
+      "validators": 4,
+      "rounds": 1,
+      "outcomes": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "done",
+        "done"
+      ],
+      "deltas": [
+        {
+          "coin": 0,
+          "grain": 4,
+          "stone": 0,
+          "wood": 0
+        },
+        {
+          "coin": 0,
+          "grain": 3,
+          "stone": 0,
+          "wood": 0
+        },
+        {
+          "coin": 0,
+          "grain": 0,
+          "stone": 0,
+          "wood": 1
+        },
+        {
+          "coin": 0,
+          "grain": 3,
+          "stone": 0,
+          "wood": 0
+        },
+        {
+          "coin": 0,
+          "grain": 0,
+          "stone": 0,
+          "wood": 1
+        },
+        {
+          "coin": 0,
+          "grain": 3,
+          "stone": 0,
+          "wood": 0
+        }
+      ],
+      "observed": "LLLLLL",
+      "matches_expectation": true
+    }
+  ]
+}

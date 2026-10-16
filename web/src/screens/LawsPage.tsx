@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import { RULES } from "../lib/rules.ts";
 import { commonLand } from "../lib/derive.ts";
 import { useWorld } from "../world-context.tsx";
@@ -44,7 +45,12 @@ export function LawsPage() {
               <dl className="kv">
                 <dt>Season</dt><dd className="cap">{w.conditions.season}</dd>
                 <dt>Event</dt><dd className="cap">{w.conditions.event}</dd>
-                <dt>Common land per citizen</dt><dd className="mono">{Object.entries(w.commonsPerCitizen).map(([k, v]) => `${k} ${v}`).join(" · ")}</dd>
+                {Object.entries(w.regionLand).map(([g, land]) => (
+                  <Fragment key={g}>
+                    <dt className="cap">{g} land, per citizen</dt>
+                    <dd className="mono">{Object.entries(land).map(([k, v]) => `${k} ${v}`).join(" · ")}</dd>
+                  </Fragment>
+                ))}
                 <dt>Left this epoch</dt><dd className="mono">{commonLand(w).map((l) => `${l.resource} ${l.left}/${l.capacity}`).join(" · ")}</dd>
               </dl>
             </section>

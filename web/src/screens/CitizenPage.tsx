@@ -115,13 +115,13 @@ export function CitizenPage({ address }: { address: string }) {
         <TabPanel id="holdings" active={tab === "holdings"}>
           <SectionHeader as="h2" title="Current holdings" eyebrow="Read from the contract" />
           <Holdings values={{ wood: c.wood, stone: c.stone, grain: c.grain, coin: c.coin }} />
-          <p className="panel-note">{c.farms} farm{c.farms === 1 ? "" : "s"} owned. Quantities have no maximum, so no bars are drawn. Coin only changes through trades.</p>
+          <p className="panel-note">Lives in the {c.region}. {c.farms} farm{c.farms === 1 ? "" : "s"} owned. Quantities have no maximum, so no bars are drawn. Coin only changes through trades.</p>
         </TabPanel>
 
         <TabPanel id="activity" active={tab === "activity"}>
           <SectionHeader as="h2" title="Recorded activity" eyebrow="From the retained chronicle" />
-          {log.length === 0 ? <EmptyState icon="scroll" title="No recorded activity">Nothing for this citizen is in the contract's 60-entry chronicle.</EmptyState> : <ul className="events">{[...log].reverse().map((e, i) => <EventRow key={i} e={e} showWho={false} />)}</ul>}
-          {acts.length > 0 ? <p className="panel-note">Earlier activity may have rolled out of the chronicle, so the counts in Overview can be larger than the list here.</p> : null}
+          {log.length === 0 ? <EmptyState icon="scroll" title="No recorded activity">Nothing for this citizen is among the latest chronicle entries this page loads. The contract keeps the full chronicle.</EmptyState> : <ul className="events">{[...log].reverse().map((e, i) => <EventRow key={i} e={e} showWho={false} />)}</ul>}
+          {acts.length > 0 ? <p className="panel-note">Only the latest entries are loaded here, so the counts in Overview can be larger than the list.</p> : null}
         </TabPanel>
 
         <TabPanel id="reputation" active={tab === "reputation"}>

@@ -16,13 +16,18 @@ test("the world decodes, keeping wei exact", () => {
   const w = toWorld({
     charter: "c", status: "RUNNING", epoch: 3n, season_epochs: 6n, epoch_seconds: 180n, next_epoch_at: 99n, bond: 100000000000000000n,
     pool: 400000000000000000n, citizens: 4n, alive: 3n, settled: false, conditions: { epoch: 3n, season: "autumn", event: "river in flood" },
-    commons_left: { wood: 8n, stone: 6n, grain: 0n }, commons_per_citizen: { wood: 8n, stone: 6n, grain: 10n },
+    commons_left: { wood: 8n, stone: 6n, grain: 0n }, commons_capacity: { wood: 14n, stone: 12n, grain: 16n },
+    regions: { forest: { citizens: 2n, left: { wood: 8n, stone: 1n, grain: 0n }, capacity: { wood: 24n, stone: 4n, grain: 16n } } },
+    region_land: { forest: { wood: 12n, stone: 2n, grain: 8n } }, chronicle_size: 120n, flagged_size: 7n,
   });
   assert.equal(w.pool, 400000000000000000n);
   assert.equal(w.conditions.event, "river in flood");
   assert.equal(w.epoch, 3);
   assert.equal(w.commonsLeft.grain, 0);
-  assert.equal(w.commonsPerCitizen.grain, 10);
+  assert.equal(w.commonsCapacity.grain, 16);
+  assert.equal(w.regions.forest.citizens, 2);
+  assert.equal(w.regionLand.forest.wood, 12);
+  assert.equal(w.chronicleSize, 120);
 });
 
 test("a citizen record decodes, with lawfulness only on the record view", () => {

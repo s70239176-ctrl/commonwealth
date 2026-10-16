@@ -56,7 +56,7 @@ for (;;) {
     const r = await send(n, "act", [AGENTS[n].plan(epoch)]);
     return { n, status: r.status, s: Math.round((Date.now() - t0) / 1000), rounds: Number(r.tx?.num_of_rounds ?? 1) };
   }));
-  const chron = await view(reader, address, "get_chronicle", []);
+  const chron = await view(reader, address, "get_recent", [100]);
   for (const e of chron.filter((x) => x.epoch === epoch && x.kind === "action")) {
     say(`  ${e.who}: "${e.text.slice(0, 58)}" -> ${e.outcome} ${e.outcome === "done" ? JSON.stringify(Object.fromEntries(Object.entries(e.delta).filter(([, v]) => v !== 0))) : ""}`);
   }
@@ -100,7 +100,7 @@ for (const c of cits) {
 }
 const wend = await world();
 say(`pool ${wend.pool}, contract balance ${await balanceOf(reader, address)}`);
-const chron = await view(reader, address, "get_chronicle", []);
+const chron = await view(reader, address, "get_recent", [100]);
 say("chronicle tail: " + chron.slice(-6).map((e) => `[${e.kind}] ${e.text}`).join(" | "));
 writeFileSync(new URL("../docs/season-log.txt", import.meta.url), log.join("\n") + "\n");
 process.exit(0);

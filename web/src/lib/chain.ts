@@ -110,8 +110,9 @@ export async function listCitizens(): Promise<Citizen[]> {
   return ((await view("list_citizens", [])) as Raw[]).map(toCitizen);
 }
 
-export async function getChronicle(): Promise<ChronicleEntry[]> {
-  return ((await view("get_chronicle", [])) as Raw[]).map(toChronicle);
+/** The latest `n` chronicle entries (the contract returns at most 100 per read; the chronicle itself is never pruned). */
+export async function getChronicle(n = 100): Promise<ChronicleEntry[]> {
+  return ((await view("get_recent", [n])) as Raw[]).map(toChronicle);
 }
 
 export async function getOffers(who: string): Promise<Offer[]> {

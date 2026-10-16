@@ -50,7 +50,7 @@ export function commonLand(w: World): CommonLand[] {
   return LAND_RESOURCES.map((resource) => ({
     resource,
     left: w.commonsLeft[resource] ?? 0,
-    capacity: (w.commonsPerCitizen[resource] ?? 0) * Math.max(1, w.alive),
+    capacity: w.commonsCapacity[resource] ?? 0,
   }));
 }
 

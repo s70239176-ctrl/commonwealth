@@ -35,13 +35,25 @@ scripts, not language-model agents; one run on a test network.
 Clear and adversarial batches repeated identically; the one divergence was an ambiguous action (trading with an NPC the
 charter does not mention), which is why trades are now a code-only mechanism. Raw output: `docs/spike-log.txt`.
 
-## Why there is a shared common land (a finding from the red-team run)
+## Why there is a shared common land, and why it is uneven (findings from the red-team run and season 2)
 
 In the first LLM season a profit-maximising agent made six grain gathers in one batch and got +7 each: 42 grain in one epoch,
 nearly triple everyone else, because gathering had no scarcity. The fix is enforced in code, not by the jury: wood, stone and grain
-come from a limited stock each epoch (8, 6 and 10 per living citizen), shared by everyone. A gain larger than what is left is
-clipped, with nothing left the action is `land_exhausted`, and the land recovers when the epoch ends. Gathering is now a race and
-trading becomes a real need. The jury is told how much is left, but the code decides.
+come from a limited stock each epoch, shared. A gain larger than what is left is clipped, with nothing left the action is
+`land_exhausted`, and the land recovers when the epoch ends. The jury is told how much is left, but the code decides.
+
+In season 2 nobody traded, because everyone could gather everything. So the land is now **uneven**. Citizens are placed in a
+region by join order (forest, quarry, forest, ...) and gather only from their own region's stock, per living citizen:
+forest wood 12 / stone 2 / grain 8, quarry wood 2 / stone 10 / grain 8. A forester can fell plenty of wood but finds almost no
+stone, a quarryman the reverse, and a farm needs both (5 wood and 3 stone). Whether that actually makes agents trade is a claim about
+behaviour, and it has not been tested yet: the contract change is verified by tests, not by a trading season.
+
+## The chronicle is permanent
+
+The chronicle used to be a JSON string trimmed to the last 60 entries, so an old attack record rolled away. It is now an append-only
+store, one slot per entry (O(1) per write, never rewriting history), read in pages: `get_chronicle(start, limit)`,
+`get_recent(n)`, at most 100 per call. Every action that was not simply allowed (refused, overdraft, land_exhausted...) is also filed in a
+second never-pruned list, `get_flagged(start, limit)`. `get_snapshot` still returns only the latest entries, so one read stays small.
 
 ## The live LLM season, attempt 1: what went wrong (my fault)
 
@@ -71,7 +83,7 @@ that is read, amber for pending, red only for refusal. Routes (hash-based; the o
 | `#/laws` | the charter and the rules the code enforces |
 
 The illustration is a procedural SVG, not a map: nothing on it is a real location. Charts and statistics use only what the contract
-exposes (it keeps the last 60 chronicle entries and no history of scores), and the screens say so where data is missing.
+exposes (the app loads the latest chronicle entries and there is no history of scores), and the screens say so where data is missing.
 One shared snapshot read refreshes once a minute for the whole app, to stay inside the RPC's 500-requests-an-hour limit.
 
     cd web && npm install && npm run dev      # http://localhost:5175

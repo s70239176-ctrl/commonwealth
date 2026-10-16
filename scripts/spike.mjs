@@ -36,7 +36,7 @@ async function runCitizen(label, batch) {
   const seconds = Math.round((Date.now() - t0) / 1000);
   const votes = Object.values(r.tx?.consensus_data?.votes ?? {});
   const citizen = await view(client, address, "get_citizen", [who]);
-  const chronicle = (await view(client, address, "get_chronicle", [])).filter((e) => e.who === label);
+  const chronicle = (await view(client, address, "get_recent", [100])).filter((e) => e.who === label);
   return {
     label, status: r.status, revert: r.revert, seconds, votes, citizen,
     outcomes: chronicle.map((e) => e.outcome), deltas: chronicle.map((e) => e.delta),

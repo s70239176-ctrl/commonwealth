@@ -20,9 +20,15 @@ export interface World {
   alive: number;
   settled: boolean;
   conditions: Conditions;
-  /** what is left of the shared common land this epoch, and the stock it holds per living citizen */
+  /** what is left of the common land this epoch (all regions together), and its full capacity */
   commonsLeft: Record<string, number>;
-  commonsPerCitizen: Record<string, number>;
+  commonsCapacity: Record<string, number>;
+  /** per region: living citizens, stock left and full capacity. The land is not the same everywhere. */
+  regions: Record<string, { citizens: number; left: Record<string, number>; capacity: Record<string, number> }>;
+  /** the stock each region holds per living citizen */
+  regionLand: Record<string, Record<string, number>>;
+  chronicleSize: number;
+  flaggedSize: number;
 }
 
 export interface Citizen {
@@ -35,6 +41,7 @@ export interface Citizen {
   grain: number;
   coin: number;
   farms: number;
+  region: string;
   bond: bigint;
   hunger: number;
   joinedEpoch: number;

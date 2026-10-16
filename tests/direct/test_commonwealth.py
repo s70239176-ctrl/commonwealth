@@ -44,11 +44,11 @@ class TestRegistration:
 class TestJudgedActions:
     def test_a_valid_batch_applies_in_order_and_is_recorded(self, world):
         world.join(world.alice)
-        out = world.act(world.alice, ["gather wood", "gather stone"], [row(wood=5), row(stone=4)])
+        out = world.act(world.alice, ["gather wood", "gather stone"], [row(wood=5), row(stone=2)])
         assert out == ["done", "done"]
         c = world.get(world.alice)
-        assert (c["wood"], c["stone"], c["actions_done"], c["batches"]) == (15, 9, 2, 1)
-        assert [e["kind"] for e in world.c.get_chronicle()][-2:] == ["action", "action"]
+        assert (c["wood"], c["stone"], c["actions_done"], c["batches"]) == (15, 7, 2, 1)
+        assert [e["kind"] for e in world.c.get_chronicle(0, 100)][-2:] == ["action", "action"]
 
     def test_the_prompt_carries_the_charter_conditions_and_holdings(self, world):
         world.join(world.alice)
@@ -230,7 +230,7 @@ class TestEpochsAndStarvation:
         world.end_epoch()
         c = world.get(world.alice)
         assert not c["alive"] and c["died_epoch"] == 2
-        assert any(e["kind"] == "death" for e in world.c.get_chronicle())
+        assert any(e["kind"] == "death" for e in world.c.get_chronicle(0, 100))
 
     def test_eating_resets_hunger(self, world):
         world.join(world.alice)
@@ -365,48 +365,83 @@ class TestSettlement:
 
 
 class TestCommonLand:
+    """Alice joins first and lives in the FOREST; Bob second, in the QUARRY. Per citizen a forest holds wood 12 / stone 2 / grain 8."""
+
+    def test_regions_alternate_by_join_order(self, world):
+        world.join(world.alice)
+        world.join(world.bob)
+        world.join(world.charlie)
+        assert [world.get(w)["region"] for w in (world.alice, world.bob, world.charlie)] == ["forest", "quarry", "forest"]
+
     def test_gathering_draws_down_a_shared_stock_and_clips_the_excess(self, world):
         world.join(world.alice)
-        # one citizen alive: the land holds 10 grain this epoch
+        # one forest citizen alive: the land holds 8 grain this epoch
         out = world.act(world.alice, ["gather", "gather again", "and again", "once more"], [row(grain=7)] * 4)
         assert out == ["done", "done", "land_exhausted", "land_exhausted"]
-        assert world.get(world.alice)["grain"] == 4 + 10  # 7, then only 3 were left
-        log = [e for e in world.c.get_chronicle() if e["kind"] == "action"]
-        assert [e["delta"]["grain"] for e in log] == [7, 3, 0, 0]
-        assert world.c.get_world()["commons_left"]["grain"] == 0
+        assert world.get(world.alice)["grain"] == 4 + 8  # 7, then only 1 was left
+        log = [e for e in world.c.get_chronicle(0, 100) if e["kind"] == "action"]
+        assert [e["delta"]["grain"] for e in log] == [7, 1, 0, 0]
+        assert world.c.get_world()["regions"]["forest"]["left"]["grain"] == 0
 
-    def test_the_stock_is_shared_so_the_first_greedy_citizen_starves_the_rest(self, world):
+    def test_a_forest_citizen_finds_wood_but_almost_no_stone(self, world):
         world.join(world.alice)
-        world.join(world.bob)  # two alive: 20 grain
-        world.act(world.alice, ["gather"] * 3, [row(grain=10)] * 3)  # takes 20 (10 + 10), third is exhausted
-        out = world.act(world.bob, ["gather"], [row(grain=7)])
+        out = world.act(world.alice, ["fell trees", "quarry rock", "quarry more"], [row(wood=10), row(stone=8), row(stone=8)])
+        assert out == ["done", "done", "land_exhausted"]
+        c = world.get(world.alice)
+        assert c["wood"] == 10 + 10 and c["stone"] == 5 + 2  # the quarry action was clipped to the 2 stone the forest holds
+
+    def test_a_quarry_citizen_is_the_mirror_image(self, world):
+        world.join(world.alice)
+        world.join(world.bob)
+        out = world.act(world.bob, ["quarry rock", "fell trees", "fell more"], [row(stone=10), row(wood=8), row(wood=8)])
+        assert out == ["done", "done", "land_exhausted"]
+        c = world.get(world.bob)
+        assert c["stone"] == 5 + 10 and c["wood"] == 10 + 2
+
+    def test_the_regions_do_not_share_a_stock(self, world):
+        world.join(world.alice)
+        world.join(world.bob)
+        world.act(world.alice, ["gather"] * 2, [row(wood=10)] * 2)  # the forest's wood: 12
+        w = world.c.get_world()["regions"]
+        assert w["forest"]["left"]["wood"] == 0 and w["quarry"]["left"]["wood"] == 2
+        out = world.act(world.bob, ["gather"], [row(wood=2)])
+        assert out == ["done"]
+
+    def test_the_stock_is_shared_within_a_region(self, world):
+        world.join(world.alice)
+        world.join(world.bob)
+        world.join(world.charlie)  # alice and charlie share the forest: 16 grain
+        world.act(world.alice, ["gather"] * 2, [row(grain=10)] * 2)  # 10 + 6
+        out = world.act(world.charlie, ["gather"], [row(grain=7)])
         assert out == ["land_exhausted"]
-        assert world.get(world.bob)["grain"] == 4
+        assert world.get(world.charlie)["grain"] == 4
 
     def test_the_land_recovers_each_epoch(self, world):
         world.join(world.alice)
-        world.act(world.alice, ["gather", "gather"], [row(grain=10)] * 2)
+        world.act(world.alice, ["gather", "gather"], [row(grain=8)] * 2)
         assert world.c.get_world()["commons_left"]["grain"] == 0
         world.end_epoch()
-        assert world.c.get_world()["commons_left"]["grain"] == 10
+        assert world.c.get_world()["commons_left"]["grain"] == 8
 
-    def test_more_citizens_mean_more_land(self, world):
+    def test_more_citizens_mean_more_land_where_they_live(self, world):
         world.join(world.alice)
-        assert world.c.get_world()["commons_left"] == {"wood": 8, "stone": 6, "grain": 10}
+        assert world.c.get_world()["commons_left"] == {"wood": 12, "stone": 2, "grain": 8}
         world.join(world.bob)
-        assert world.c.get_world()["commons_left"] == {"wood": 16, "stone": 12, "grain": 20}
+        assert world.c.get_world()["commons_left"] == {"wood": 14, "stone": 12, "grain": 16}
+        assert world.c.get_world()["commons_capacity"] == {"wood": 14, "stone": 12, "grain": 16}
 
-    def test_the_jury_is_told_how_much_land_is_left(self, world):
+    def test_the_jury_is_told_the_region_and_how_much_land_is_left_there(self, world):
         world.join(world.alice)
         world.act(world.alice, ["gather wood"], [row(wood=5)])
         world.end_epoch()
         world.act(world.alice, ["gather wood"], [row(wood=3)])
-        assert "COMMON LAND LEFT" in world.llm_prompts[-1] and '"wood": 8' in world.llm_prompts[-1]
+        p = world.llm_prompts[-1]
+        assert "COMMON LAND LEFT" in p and '"wood": 12' in p and "REGION OF THIS CITIZEN: forest" in p
 
     def test_coin_and_other_losses_are_not_land(self, world):
         world.join(world.alice)
-        out = world.act(world.alice, ["spend wood", "gather"], [row(wood=-5), row(wood=8)])
-        assert out == ["done", "done"] and world.c.get_world()["commons_left"]["wood"] == 0
+        out = world.act(world.alice, ["spend wood", "gather"], [row(wood=-5), row(wood=10)])
+        assert out == ["done", "done"] and world.c.get_world()["commons_left"]["wood"] == 2
 
     @pytest.mark.parametrize("seed", range(40))
     def test_total_taken_never_exceeds_the_stock(self, world, seed):
@@ -421,6 +456,49 @@ class TestCommonLand:
             assert new[r] == {"wood": 10, "stone": 5, "grain": 4}[r] + taken
 
 
+class TestChronicle:
+    def test_nothing_is_ever_pruned(self, world):
+        people = (world.alice, world.bob, world.charlie)
+        for p in people:
+            world.join(p)
+        for i in range(7):
+            for p in people:
+                world.act(p, ["do thing %d" % j for j in range(6)], [row(grain=6)] + [row(ok=False)] * 5)
+            world.end_epoch()
+        w = world.c.get_world()
+        assert w["chronicle_size"] > 100  # the old cap was 60 entries
+        page2 = world.c.get_chronicle(100, 100)
+        assert len(world.c.get_chronicle(0, 100)) == 100 and len(page2) == w["chronicle_size"] - 100
+        assert world.c.get_chronicle(0, 1)[0]["kind"] == "join"  # the very first entry is still there
+        assert w["flagged_size"] == 3 * 7 * 5
+
+    def test_paging_is_bounded_and_ordered(self, world):
+        world.join(world.alice)
+        world.act(world.alice, ["a%d thing" % i for i in range(6)], [row(ok=False)] * 6)
+        total = world.c.get_world()["chronicle_size"]
+        page = world.c.get_chronicle(2, 3)
+        assert len(page) == 3 and page == world.c.get_chronicle(0, 100)[2:5]
+        assert world.c.get_chronicle(total, 10) == [] and world.c.get_chronicle(10**6, 10) == []
+        assert len(world.c.get_chronicle(0, 10**6)) <= 100
+        assert world.c.get_recent(2) == world.c.get_chronicle(0, 100)[-2:]
+
+    def test_refused_and_clipped_actions_stay_on_the_rap_sheet(self, world):
+        world.join(world.alice)
+        world.act(world.alice, ["fell trees", "attack the granary", "conjure gold", "gather"], [row(wood=3), row(ok=False), row(ok=False), row(wood=2)])
+        flagged = world.c.get_flagged(0, 100)
+        assert [e["text"] for e in flagged] == ["attack the granary", "conjure gold"]
+        assert all(e["outcome"] == "refused" for e in flagged)
+        assert world.c.get_world()["flagged_size"] == 2
+
+    def test_the_rap_sheet_outlives_the_recent_window(self, world):
+        world.join(world.alice)
+        world.act(world.alice, ["attack the granary"], [row(ok=False)])
+        for _ in range(6):
+            world.end_epoch()
+            world.vm.sender = world.charlie  # anyone may end an epoch; keep churning the chronicle
+        assert world.c.get_flagged(0, 10)[0]["text"] == "attack the granary"
+
+
 class TestSnapshot:
     def test_one_read_returns_the_world_the_citizens_and_the_recent_chronicle(self, world):
         world.join(world.alice, "Ada")
@@ -429,12 +507,12 @@ class TestSnapshot:
         snap = world.c.get_snapshot(3)
         assert snap["world"] == world.c.get_world()
         assert [c["name"] for c in snap["citizens"]] == ["Ada", "Bo"] == [c["name"] for c in world.c.list_citizens()]
-        assert snap["chronicle"] == world.c.get_chronicle()[-3:] and len(snap["chronicle"]) == 3
+        assert snap["chronicle"] == world.c.get_chronicle(0, 100)[-3:] and len(snap["chronicle"]) == 3
         world.vm.sender = world.alice
         world.c.offer(hexof(world.bob), '{"wood":1}', '{"grain":1}')
         assert [o["from"] for o in world.c.get_snapshot(1)["offers"]] == [hexof(world.alice)]
         assert world.c.get_snapshot(0)["chronicle"] == []
-        assert len(world.c.get_snapshot(10**6)["chronicle"]) == len(world.c.get_chronicle())
+        assert len(world.c.get_snapshot(10**6)["chronicle"]) == len(world.c.get_chronicle(0, 100))
 
 
 class TestRecordAndGate:

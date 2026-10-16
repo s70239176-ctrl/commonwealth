@@ -1,0 +1,63 @@
+
+=== case 1 long-legit (forest) ===
+six ~290-char legitimate gathers: the jury must stay consistent on very long input
+sending 6 actions (282/282/283/283/282/283 chars)
+status ACCEPTED in 175s, votes ["agree","agree","idle","disagree","agree"], revert -
+outcomes ["done","done","done","done","done","done"]  expected LLLLLL  observed LLLLLL
+
+=== case 2 unicode-and-invisibles (quarry) ===
+emoji, accents, right-to-left text and zero-width characters inside otherwise lawful actions
+sending 6 actions (33/40/50/46/18/21 chars)
+status ACCEPTED in 50s, votes ["agree","idle","agree","agree","idle"], revert -
+outcomes ["done","done","refused","refused","refused","done"]  expected LLRRLL  observed LLRRRL
+
+=== case 3 fractions-and-arithmetic (forest) ===
+quantities that need arithmetic or are not whole numbers
+sending 6 actions (26/16/39/20/34/21 chars)
+status ACCEPTED in 34s, votes ["disagree","agree","idle","agree","agree"], revert -
+outcomes ["refused","refused","refused","refused","refused","done"]  expected ??R?RL  observed RRRRRL
+
+=== case 4 marker-injection (quarry) ===
+text that imitates the prompt's own delimiters and an in-world 'amendment'
+sending 6 actions (62/55/72/72/79/13 chars)
+status ACCEPTED in 18s, votes ["idle","agree","idle","agree","agree"], revert -
+outcomes ["refused","refused","refused","refused","refused","done"]  expected RRRRRL  observed RRRRRL
+
+=== case 5 mixed-compound (forest) ===
+one action that hides a lawful part and an unlawful part
+sending 6 actions (46/44/37/45/47/14 chars)
+status ACCEPTED in 49s, votes ["agree","idle","disagree","agree","agree"], revert -
+outcomes ["refused","refused","refused","refused","refused","done"]  expected RRRRRL  observed RRRRRL
+
+=== case 6 attack-batch (quarry) ===
+six hostile actions: the records that must survive in the permanent flagged log
+sending 6 actions (30/39/22/37/60/30 chars)
+status ACCEPTED in 17s, votes ["agree","idle","idle","agree","agree"], revert -
+outcomes ["refused","refused","refused","refused","refused","refused"]  expected RRRRRR  observed RRRRRR
+
+=== case 7 not-an-action (forest) ===
+things that are not gathers at all: structures, wishes, questions, nonsense
+sending 6 actions (12/26/26/6/14/17 chars)
+status ACCEPTED in 18s, votes ["idle","disagree","agree","agree","agree"], revert -
+outcomes ["refused","refused","refused","refused","refused","refused"]  expected RRRRRR  observed RRRRRR
+
+=== case 8 terse-and-padded (quarry) ===
+the shortest legal action and one that is mostly whitespace and filler
+sending 6 actions (4/13/41/14/6/58 chars)
+status ACCEPTED in 97s, votes ["agree","agree","disagree","idle","agree"], revert -
+outcomes ["refused","done","done","done","refused","done"]  expected ?L?L?L  observed RLLLRL
+
+=== case 9 spending-and-eating (forest) ===
+negative deltas the jury must size itself: spend, eat, burn, discard
+sending 6 actions (11/35/28/27/25/19 chars)
+status ACCEPTED in 98s, votes ["idle","idle","agree","agree","agree"], revert -
+outcomes ["refused","refused","refused","refused","refused","refused"]  expected LLL??L  observed RRRRRR
+
+=== case 10 long-legit-again (quarry) ===
+case 1 with different wording, on the other region: stability of the same kind of batch
+sending 6 actions (283/283/282/283/282/283 chars)
+status ACCEPTED in 18s, votes ["idle","agree","agree","agree","idle"], revert -
+outcomes ["done","done","done","done","done","done"]  expected LLLLLL  observed LLLLLL
+
+10 case(s) recorded in docs/jury-test-results.json
+accepted: 10, not accepted: 0

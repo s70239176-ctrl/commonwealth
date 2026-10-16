@@ -26,6 +26,17 @@ function numMap(v: unknown): Record<string, number> {
   return out;
 }
 
+function regionsOf(v: unknown): World["regions"] {
+  const out: World["regions"] = {};
+  if (v && typeof v === "object") {
+    for (const [k, x] of Object.entries(v as Raw)) {
+      const g = x as Raw;
+      out[k] = { citizens: num(g.citizens), left: numMap(g.left), capacity: numMap(g.capacity) };
+    }
+  }
+  return out;
+}
+
 export function toWorld(r: Raw): World {
   const c = (r.conditions ?? {}) as Raw;
   return {
@@ -42,7 +53,11 @@ export function toWorld(r: Raw): World {
     settled: Boolean(r.settled),
     conditions: { epoch: num(c.epoch), season: String(c.season), event: String(c.event) },
     commonsLeft: numMap(r.commons_left),
-    commonsPerCitizen: numMap(r.commons_per_citizen),
+    commonsCapacity: numMap(r.commons_capacity),
+    regions: regionsOf(r.regions),
+    regionLand: Object.fromEntries(Object.entries((r.region_land ?? {}) as Raw).map(([k, v]) => [k, numMap(v)])),
+    chronicleSize: num(r.chronicle_size ?? 0),
+    flaggedSize: num(r.flagged_size ?? 0),
   };
 }
 
@@ -57,6 +72,7 @@ export function toCitizen(r: Raw): Citizen {
     grain: num(r.grain),
     coin: num(r.coin),
     farms: num(r.farms ?? 0),
+    region: String(r.region ?? "forest"),
     bond: big(r.bond),
     hunger: num(r.hunger),
     joinedEpoch: num(r.joined_epoch),
