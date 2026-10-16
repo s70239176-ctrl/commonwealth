@@ -1,0 +1,7 @@
+world 0x9038BAc50d0D62B87D94Aba0BDaFbC02EEc7511F: ENDED, epoch 7/6, settled true, pool 400000000000000000 wei, alive 4/4
+Di   alive=true score=102 (w9 s29 g58 farms1) survived 6, allowed 24 / refused 3 (88% lawful), trades 1, payout 0.1388 GEN (39% on the bond), balance 0.1388 GEN
+Cy   alive=true score=90 (w10 s42 g26 farms2) survived 6, allowed 24 / refused 0 (100% lawful), trades 1, payout 0.1224 GEN (22% on the bond), balance 0.1224 GEN
+Bo   alive=true score=62 (w36 s12 g8 farms1) survived 6, allowed 21 / refused 1 (95% lawful), trades 1, payout 0.0844 GEN (-16% on the bond), balance 0.0844 GEN
+Ada  alive=true score=40 (w32 s2 g0 farms1) survived 6, allowed 17 / refused 1 (94% lawful), trades 1, payout 0.0544 GEN (-46% on the bond), balance 0.0544 GEN
+sum of payouts 400000000000000000 wei vs pool 400000000000000000 wei: EXACT; contract balance 0 wei
+outcomes in the last 60 chronicle entries: {"done":49,"refused":3}

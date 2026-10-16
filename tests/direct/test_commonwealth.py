@@ -365,7 +365,7 @@ class TestSettlement:
 
 
 class TestCommonLand:
-    """Alice joins first and lives in the FOREST; Bob second, in the QUARRY. Per citizen a forest holds wood 12 / stone 2 / grain 8."""
+    """Alice joins first and lives in the FOREST; Bob second, in the QUARRY. Per citizen a forest holds wood 12 / stone 2 / grain 2 (quarry: 2 / 10 / 14)."""
 
     def test_regions_alternate_by_join_order(self, world):
         world.join(world.alice)
@@ -375,13 +375,13 @@ class TestCommonLand:
 
     def test_gathering_draws_down_a_shared_stock_and_clips_the_excess(self, world):
         world.join(world.alice)
-        # one forest citizen alive: the land holds 8 grain this epoch
-        out = world.act(world.alice, ["gather", "gather again", "and again", "once more"], [row(grain=7)] * 4)
+        # one forest citizen alive: the land holds 12 wood this epoch
+        out = world.act(world.alice, ["gather", "gather again", "and again", "once more"], [row(wood=7)] * 4)
         assert out == ["done", "done", "land_exhausted", "land_exhausted"]
-        assert world.get(world.alice)["grain"] == 4 + 8  # 7, then only 1 was left
+        assert world.get(world.alice)["wood"] == 10 + 12  # 7, then only 5 were left
         log = [e for e in world.c.get_chronicle(0, 100) if e["kind"] == "action"]
-        assert [e["delta"]["grain"] for e in log] == [7, 1, 0, 0]
-        assert world.c.get_world()["regions"]["forest"]["left"]["grain"] == 0
+        assert [e["delta"]["wood"] for e in log] == [7, 5, 0, 0]
+        assert world.c.get_world()["regions"]["forest"]["left"]["wood"] == 0
 
     def test_a_forest_citizen_finds_wood_but_almost_no_stone(self, world):
         world.join(world.alice)
@@ -410,22 +410,22 @@ class TestCommonLand:
     def test_the_stock_is_shared_within_a_region(self, world):
         world.join(world.alice)
         world.join(world.bob)
-        world.join(world.charlie)  # alice and charlie share the forest: 16 grain
-        world.act(world.alice, ["gather"] * 2, [row(grain=10)] * 2)  # 10 + 6
-        out = world.act(world.charlie, ["gather"], [row(grain=7)])
+        world.join(world.charlie)  # alice and charlie share the forest: 24 wood
+        world.act(world.alice, ["gather"] * 3, [row(wood=10)] * 3)  # 10 + 10 + 4
+        out = world.act(world.charlie, ["gather"], [row(wood=7)])
         assert out == ["land_exhausted"]
-        assert world.get(world.charlie)["grain"] == 4
+        assert world.get(world.charlie)["wood"] == 10
 
     def test_the_land_recovers_each_epoch(self, world):
         world.join(world.alice)
-        world.act(world.alice, ["gather", "gather"], [row(grain=8)] * 2)
-        assert world.c.get_world()["commons_left"]["grain"] == 0
+        world.act(world.alice, ["gather", "gather"], [row(wood=10)] * 2)
+        assert world.c.get_world()["commons_left"]["wood"] == 0
         world.end_epoch()
-        assert world.c.get_world()["commons_left"]["grain"] == 8
+        assert world.c.get_world()["commons_left"]["wood"] == 12
 
     def test_more_citizens_mean_more_land_where_they_live(self, world):
         world.join(world.alice)
-        assert world.c.get_world()["commons_left"] == {"wood": 12, "stone": 2, "grain": 8}
+        assert world.c.get_world()["commons_left"] == {"wood": 12, "stone": 2, "grain": 2}
         world.join(world.bob)
         assert world.c.get_world()["commons_left"] == {"wood": 14, "stone": 12, "grain": 16}
         assert world.c.get_world()["commons_capacity"] == {"wood": 14, "stone": 12, "grain": 16}
@@ -463,7 +463,7 @@ class TestChronicle:
             world.join(p)
         for i in range(7):
             for p in people:
-                world.act(p, ["do thing %d" % j for j in range(6)], [row(grain=6)] + [row(ok=False)] * 5)
+                world.act(p, ["do thing %d" % j for j in range(6)], [row(grain=2)] + [row(ok=False)] * 5)
             world.end_epoch()
         w = world.c.get_world()
         assert w["chronicle_size"] > 100  # the old cap was 60 entries

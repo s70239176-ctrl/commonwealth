@@ -138,7 +138,7 @@ def world(direct_vm, direct_deploy, direct_alice, direct_bob, direct_charlie):
                 for who in feed:
                     if cls.get(who).get("alive"):
                         try:
-                            cls.act(who, ["gather grain"], [row(grain=5)])
+                            cls.act(who, ["gather grain"], [row(grain=2)])
                         except Exception:
                             pass  # already acted this epoch
                 cls.end_epoch()

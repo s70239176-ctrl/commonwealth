@@ -46,7 +46,7 @@ come from a limited stock each epoch, shared. A gain larger than what is left is
 
 In season 2 nobody traded, because everyone could gather everything. So the land is now **uneven**. Citizens are placed in a
 region by join order (forest, quarry, forest, ...) and gather only from their own region's stock, per living citizen:
-forest wood 12 / stone 2 / grain 8, quarry wood 2 / stone 10 / grain 8. A forester can fell plenty of wood but finds almost no
+forest wood 12 / stone 2 / grain 2, quarry wood 2 / stone 10 / grain 14 (season 3 had grain 8 in both regions and nobody traded, so grain is now scarce in the forest). A forester can fell plenty of wood but finds almost no
 stone, a quarryman the reverse, and a farm needs both (5 wood and 3 stone). Whether that actually makes agents trade is a claim about
 behaviour, and it has not been tested yet: the contract change is verified by tests, not by a trading season.
 

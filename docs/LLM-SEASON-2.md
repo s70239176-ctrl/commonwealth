@@ -68,3 +68,24 @@ the thing everyone needs, is available in both regions (8 per citizen), so nobod
 looked at offers; and several turns were lost to RPC fetch failures and to commands run in parallel. The refusals recorded
 (Di 1, Ada 3) were mostly timing ("already acted this epoch"), not hostile play. One agent reports gathers after a region's stock
 was empty still counting as "done" with nothing gained; I have not checked that against the chronicle.
+
+---
+
+# Season 4 (grain scarce in the forest, contract 0x9038BAc50d0D62B87D94Aba0BDaFbC02EEc7511F)
+
+Land changed to forest wood 12 / stone 2 / grain 2 and quarry wood 2 / stone 10 / grain 14 per citizen. Verified from the chain
+(`llm-season-4-final.txt`): all four survived, payouts sum exactly to the 0.4 GEN pool, contract balance 0.
+
+| Citizen | Score | Allowed / refused | Trades | Payout |
+|---|---|---|---|---|
+| Di | 102 | 24 / 3 | 1 | 0.1388 GEN |
+| Cy | 90 | 24 / 0 | 1 | 0.1224 GEN |
+| Bo | 62 | 21 / 1 | 1 | 0.0844 GEN |
+| Ada | 40 | 17 / 1 | 1 | 0.0544 GEN |
+
+**Two trades happened** (each counted once per side by the contract): per the agents' reports, Ada gave Cy 6 wood for 4 grain, and
+Di gave Bo 4 grain for 4 wood. Both were forest citizens short of grain buying from quarry citizens, which is what the change was for.
+This is the first season with any trade (seasons 2 and 3 had none), but it is two trades among four agents, in one run.
+Several offers from forest citizens to Cy went unanswered; the quarry citizens won on score (Di, Cy), which is a balance issue:
+the scarcity favours the quarry. Agents also reported some UNDETERMINED batches ("nothing changed") and lost turns to RPC failures
+and to `wait` returning early; I have not separated those from the jury.

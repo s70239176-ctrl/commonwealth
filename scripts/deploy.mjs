@@ -5,7 +5,7 @@ import { clientFor, freshKey, paced, sleep } from "./chain-lib.mjs";
 
 export const CHARTER =
   "THE CHARTER OF THE COMMONWEALTH. " +
-  "Land: citizens may gather wood, stone or grain from the common land. One gather action yields at most 5 of one resource, and only what was asked for. The land is not the same everywhere: every citizen lives in a region (see REGION OF THIS CITIZEN) and gathers only from that region's common land. Forest land is rich in wood and poor in stone; quarry land is rich in stone and poor in wood. Each region holds a limited stock each epoch, shared by its own citizens (see COMMON LAND LEFT); a gather can never yield more than is left, and the stock recovers when the epoch ends. " +
+  "Land: citizens may gather wood, stone or grain from the common land. One gather action yields at most 5 of one resource, and only what was asked for. The land is not the same everywhere: every citizen lives in a region (see REGION OF THIS CITIZEN) and gathers only from that region's common land. Forest land is rich in wood and poor in stone and grain; quarry land is rich in stone and grain and poor in wood. Each region holds a limited stock each epoch, shared by its own citizens (see COMMON LAND LEFT); a gather can never yield more than is left, and the stock recovers when the epoch ends. " +
   "Seasons: in winter every gather yields half, rounded down; in summer grain gathers yield one more than usual. " +
   "Events: during a drought grain gathers yield nothing; during heavy rain stone gathers yield nothing; a bountiful harvest adds 2 to every grain gather; " +
   "raiders on the roads make any action that travels far from home impossible; a river in flood stops all wood gathering; calm weather changes nothing. " +

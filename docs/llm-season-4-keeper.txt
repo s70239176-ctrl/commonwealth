@@ -1,0 +1,14 @@
+[01:53:04] keeper watching 0x9038BAc50d0D62B87D94Aba0BDaFbC02EEc7511F (budget-aware: it sleeps until each epoch is due)
+[02:05:18] end_epoch (epoch 1): ACCEPTED
+[02:17:28] end_epoch (epoch 2): ACCEPTED
+[02:29:15] end_epoch (epoch 3): ACCEPTED
+[02:45:10] end_epoch (epoch 4): ACCEPTED
+[02:53:16] end_epoch (epoch 5): ACCEPTED
+[03:05:27] end_epoch (epoch 6): ACCEPTED
+[03:06:42] settle_season: ACCEPTED
+[03:07:03] season settled; waiting for payouts to finalize…
+[03:08:46] Ada      alive=true score=40 survived 6 epochs, lawful 94% (17 done / 1 refused), trades 1, farms 1, payout 54421768707482993 wei, balance 54421768707482993
+[03:08:46] Cy       alive=true score=90 survived 6 epochs, lawful 100% (24 done / 0 refused), trades 1, farms 2, payout 122448979591836734 wei, balance 122448979591836734
+[03:08:46] Bo       alive=true score=62 survived 6 epochs, lawful 95% (21 done / 1 refused), trades 1, farms 1, payout 84353741496598639 wei, balance 84353741496598639
+[03:08:47] Di       alive=true score=102 survived 6 epochs, lawful 88% (24 done / 3 refused), trades 1, farms 1, payout 138775510204081634 wei, balance 138775510204081634
+[03:08:47] chronicle tail: gather 5 grain from the quarry common land | gather 5 grain from the quarry common land | epoch 6 ended (winter, calm weather) | the season is over | the pool was paid out to 4 citizen(s)

@@ -42,10 +42,11 @@ FARM_SCORE = 6
 LAND_RESOURCES = ("wood", "stone", "grain")
 REGIONS = ("forest", "quarry")  # assigned by join order, alternating: the land is NOT the same everywhere
 # The common land of a region: a LIMITED stock each epoch PER CITIZEN living there, shared only by that region's citizens.
-# A forest citizen can fell plenty of wood but find almost no stone; a quarry citizen the reverse. Trading pays.
+# A forest citizen can fell plenty of wood but finds almost no stone and barely enough grain to eat (UPKEEP_GRAIN a day); a quarry
+# citizen has stone and plenty of grain but little wood. Nobody can live well without trading.
 REGION_LAND = {
-    "forest": {"wood": 12, "stone": 2, "grain": 8},
-    "quarry": {"wood": 2, "stone": 10, "grain": 8},
+    "forest": {"wood": 12, "stone": 2, "grain": 2},
+    "quarry": {"wood": 2, "stone": 10, "grain": 14},
 }
 SNAPSHOT_MAX = 60  # most chronicle entries one snapshot read returns (the chronicle itself is unbounded)
 PAGE_MAX = 100
