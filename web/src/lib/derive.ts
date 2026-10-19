@@ -81,7 +81,7 @@ export interface EpochBucket {
   other: number;
 }
 
-/** Judged actions per epoch, from the retained chronicle only (the contract keeps the most recent 60 entries). */
+/** Judged actions per epoch, from the loaded chronicle entries only (the contract keeps the full chronicle; one snapshot read returns the latest). */
 export function actionsByEpoch(entries: ChronicleEntry[]): EpochBucket[] {
   const map = new Map<number, EpochBucket>();
   for (const e of entries) {

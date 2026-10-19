@@ -8,3 +8,9 @@ web/vite.log
 web/node_modules/
 web/.env.local
 .agents/
+video/node_modules/
+video/frames/
+video/clips/
+video/audio/
+video/out/
+video/vite.log

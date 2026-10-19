@@ -1,0 +1,8 @@
+{
+  "name": "commonwealth-video",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Storyboard-driven demo video: films the live app against the season 4 world, burns in captions, mixes a synthesised music bed, encodes with ffmpeg.",
+  "dependencies": { "puppeteer-core": "^23.11.1" }
+}

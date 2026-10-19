@@ -89,12 +89,12 @@ export function WorldPage() {
 
         <div className="stack">
           <section className="panel panel-dark" aria-labelledby="chart-title">
-            <SectionHeader as="h2" title="Judged actions by epoch" eyebrow="From the retained chronicle" />
+            <SectionHeader as="h2" title="Judged actions by epoch" eyebrow="From the loaded chronicle" />
             {buckets.length === 0 ? (
               <EmptyState icon="scroll" title="No judged actions recorded">The chart appears once citizens have acted.</EmptyState>
             ) : (
               <>
-                <p className="panel-note" id="chart-title">{span && span.from === span.to ? `Epoch ${span.from}` : `Epochs ${span?.from} to ${span?.to}`}. Earlier actions have rolled out of the contract's 60-entry chronicle.</p>
+                <p className="panel-note" id="chart-title">{span && span.from === span.to ? `Epoch ${span.from}` : `Epochs ${span?.from} to ${span?.to}`}. These are the latest entries loaded here; the contract keeps the full chronicle.</p>
                 <OutcomeBars buckets={buckets} />
                 <div className="split-row"><span>All retained actions</span><SplitBar done={counts.done} refused={counts.refused} other={counts.other} /><span className="mono">{counts.done} / {counts.total} allowed</span></div>
               </>
