@@ -18,7 +18,7 @@ type Hex = `0x${string}`;
  * The Commonwealth contract on Studionet this app was built against. VITE_CONTRACT_ADDRESS overrides it (for a redeploy or another
  * network), so a host that sets no environment variable, such as a plain Vercel import, still gets a working app.
  */
-export const DEFAULT_CONTRACT = "0x1B778DC527E91336F4409ba13F46fc24a12F751D";
+export const DEFAULT_CONTRACT = "0x80b64d040BB30493c1F25a4aB6630f84546F64c5";
 export const CONTRACT = (import.meta.env.VITE_CONTRACT_ADDRESS as string | undefined)?.trim() || DEFAULT_CONTRACT;
 export const hasContract = /^0x[0-9a-fA-F]{40}$/.test(CONTRACT) && !/^0x0+$/.test(CONTRACT);
 export const NETWORK = studionet.name;

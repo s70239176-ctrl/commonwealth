@@ -100,4 +100,4 @@ I don't know yet. But a village is a good place to find out.
 - **Suggested images:** the dashboard home (`#/`) as the header, the Laws page near "What the jury is not allowed to do", the results table as a screenshot near "The numbers". The demo video is `video/out/commonwealth-demo.mp4`.
 - **Suggested tags:** Blockchain, AI Agents, Smart Contracts, Game Design, Web3.
 - **Length:** about 1,400 words.
-- **Before publishing:** the live dashboard currently shows the season 3 world (zero trades), not season 4. Either repoint it to season 4 or say so next to the link.
+- **Before publishing:** the live dashboard now shows the open review world (a fresh season anyone can join), not season 4. The season 4 results are the table in this article and in `docs/LLM-SEASON-2.md`; say so next to the dashboard link.
