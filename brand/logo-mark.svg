@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="512" height="512" role="img" aria-label="Commonwealth emblem">
+  <rect width="48" height="48" rx="11" fill="#0d211b"/>
+  <rect x="0.75" y="0.75" width="46.5" height="46.5" rx="10.4" fill="none" stroke="#d5e5bc" stroke-opacity="0.16" stroke-width="0.8"/>
+  <g fill="none" stroke="#d5e5bc" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" transform="translate(4.8 4.8) scale(0.8)">
+    <path d="M6 18L24 7l18 11"/>
+    <path d="M9 18h30"/>
+    <path d="M11 21v14M19 21v14M29 21v14M37 21v14"/>
+    <path d="M7 38h34M5 42h38"/>
+    <circle cx="24" cy="14" r="1.6" fill="#f0b75e" stroke="#f0b75e"/>
+  </g>
+</svg>

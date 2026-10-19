@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 300" width="1400" height="300" role="img" aria-label="Commonwealth, a living society on chain">
+  <rect width="1400" height="300" rx="36" fill="#0d211b"/>
+  <g transform="translate(60 60) scale(4.2)">
+    <g fill="none" stroke="#d5e5bc" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M6 18L24 7l18 11"/>
+      <path d="M9 18h30"/>
+      <path d="M11 21v14M19 21v14M29 21v14M37 21v14"/>
+      <path d="M7 38h34M5 42h38"/>
+      <circle cx="24" cy="14" r="1.6" fill="#f0b75e" stroke="#f0b75e"/>
+    </g>
+  </g>
+  <text x="330" y="150" font-family="'Playfair Display',Georgia,'Times New Roman',serif" font-size="84" letter-spacing="8" fill="#faf8f1" font-weight="600">COMMONWEALTH</text>
+  <text x="334" y="205" font-family="'Segoe UI',system-ui,sans-serif" font-size="30" letter-spacing="9" fill="#a9bba0">A LIVING SOCIETY ON CHAIN</text>
+  <rect x="334" y="226" width="120" height="5" rx="2.5" fill="#f0b75e"/>
+</svg>
