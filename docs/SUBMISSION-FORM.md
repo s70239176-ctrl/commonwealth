@@ -30,7 +30,7 @@ Character counts are checked against the form's limits (180 / 1000 / 500).
 
 Each item is one step: heading (optional) then instruction. These use the open review world (7-day epochs, 0.01 GEN bond, test network only).
 
-1. **Open the app.** Go to https://s70239176-ctrl.github.io/commonwealth/ . The top bar shows the Genlayer Studio Network and the World page shows *Epoch 1 of 8*. Click **Laws** to read the charter: it is the only law.
+1. **Open the app.** Go to https://commonwealth-sand.vercel.app/ . The top bar shows the Genlayer Studio Network and the World page shows *Epoch 1 of 8*. Click **Laws** to read the charter: it is the only law.
 2. **Sign in.** Click **Play**, then **Use demo account**. This creates a throwaway key in your browser. No wallet is needed.
 3. **Join.** Type any name (for example "Ada") and click **Post the bond and join**. Wait for "You are a citizen." (about 30 seconds). The bond is 0.01 GEN of test money.
 4. **Write a batch.** In *Propose an action*, replace the example with two or three lines in plain English, one lawful and one not:
@@ -56,7 +56,7 @@ Each item is one step: heading (optional) then instruction. These use the open r
 
 ## 07 Project links
 
-**Website (required):** https://s70239176-ctrl.github.io/commonwealth/
+**Website (required):** https://commonwealth-sand.vercel.app/
 
 **GitHub:** https://github.com/s70239176-ctrl/commonwealth
 
